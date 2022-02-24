@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class Combatant : MonoBehaviour
 {
     public GameObject gameMaster;
+    private Gamemaster gm;
     public string UnitName;
     private int CurrentHealth;
     public int MaxHealth;
@@ -24,16 +25,15 @@ public class Combatant : MonoBehaviour
     private GameObject activeSelectionHighlight;
 
 
-
-
     // Start is called before the first frame update
     void Start()
     {
         CurrentHealth = MaxHealth;
         remainingAttacks = MaxAttacks;
         remainingMoves = MaxMoves;
-        gameMaster.GetComponent<Gamemaster>().AddCombatant(this);
-        damageReductionMod = gameMaster.GetComponent<Gamemaster>().GetDamageReductionMod();
+        gm = gameMaster.GetComponent<Gamemaster>();
+        gm.AddCombatant(this);
+        damageReductionMod = gm.GetDamageReductionMod();
     }
 
     // Update is called once per frame

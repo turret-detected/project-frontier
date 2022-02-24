@@ -18,6 +18,8 @@ public enum State {
     PLAYER_MOVE,
     AI_MOVE,
     WAITING,
+    VICTORY,
+    DEFEAT
 }
 
 public class Gamemaster : MonoBehaviour
@@ -45,9 +47,11 @@ public class Gamemaster : MonoBehaviour
         if (gameState != State.WAITING) {
             if (PlayerUnitCount > 0 && AIUnitCount < 1) {
                 // Player victory
+                gameState = State.VICTORY;
             }
             if (AIUnitCount > 0 && PlayerUnitCount < 1) {
                 // AI victory
+                gameState = State.DEFEAT;
             }            
         }
 
@@ -90,6 +94,7 @@ public class Gamemaster : MonoBehaviour
     }
 
     public void RemoveCombatant(Combatant c) {
+       combatants.Remove(c);
        if (c.UnitFaction == Faction.PLAYER) {
             PlayerUnitCount--;
         }
@@ -105,4 +110,22 @@ public class Gamemaster : MonoBehaviour
     public State GetCurrentState() {
         return gameState;
     }
+
+    public GameObject getNearestEnemy(GameObject obj) { // ONLY TARGETS PLAYER UNITS
+        GameObject target = null;
+        float distance = 100000;
+        foreach (Combatant c in combatants) {
+            if (c.UnitFaction == Faction.PLAYER) {
+                float temp = Vector3.Distance(obj.transform.position, c.gameObject.transform.position);
+                if (temp < distance) {
+                    distance = temp;
+                    target = c.gameObject;
+                }
+            }
+        }
+
+        return target;
+    }
+
+    
 }

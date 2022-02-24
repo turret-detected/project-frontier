@@ -9,7 +9,7 @@ public class MovementAI : MonoBehaviour
     private CharacterController controller;
     public Path path;
     public float speed = 2;
-    public float nextWaypointDistance = 3;
+    private float nextWaypointDistance = 1; // how many points ahead it looks
     private int currentWaypoint = 0;
     public bool reachedEndOfPath;
 

@@ -49,7 +49,13 @@ public class ActionManager : MonoBehaviour
                     // Action mode
                     if (Input.GetButtonDown("Move") && hit.transform.gameObject.tag == "Terrain") {
                         Debug.Log("Moving!");
-                        selectedSelectable.GetComponent<MovementAI>().MoveToSpace((int)hit.point.x, (int)hit.point.z);
+                        // TODO tell Combatant to move instead
+                        float x = Mathf.Round(hit.point.x);
+                        float z = Mathf.Round(hit.point.z);
+                        Debug.Log("Hit: X: " + hit.point.x + " Z: " + hit.point.z);
+                        Debug.Log("Moving to: X: " + (int) x + " Z: " + (int) z);
+                        
+                        selectedSelectable.GetComponent<MovementAI>().MoveToSpace((int) x, (int) z);
                         // TODO set moving and edit movement script to say when its done!
                     }
                     if (Input.GetButtonDown("Move") && hit.transform.gameObject.GetComponent<Combatant>().UnitFaction == Faction.COMPUTER) {
