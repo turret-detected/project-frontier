@@ -1,2 +1,2 @@
-# project-frontier-issues
-Issues list for Project Frontier
+# project-frontier
+Issues and code for Project Frontier
