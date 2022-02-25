@@ -46,6 +46,16 @@ public class Combatant : MonoBehaviour
         return this.CurrentHealth;
     }
 
+    public bool Move(int x, int z) {
+        // TODO
+        // ASK GM IF THERE'S A UNIT THERE
+        // IF NOT
+        // SEE IF I HAVE THE MOVES TO GET THERE (HOW CALC???)
+        // IF YES, DO THE MOVE
+
+        return false;
+    }
+
     public void Attack(Combatant opponent) {
         // do i have an attack?
         if (remainingAttacks > 0) {
@@ -98,5 +108,10 @@ public class Combatant : MonoBehaviour
             Destroy(activeSelectionHighlight);
         }
         
+    }
+
+    public void ResetActions() {
+        remainingAttacks = MaxAttacks;
+        remainingMoves = MaxMoves;
     }
 }

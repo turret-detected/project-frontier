@@ -29,6 +29,8 @@ public class Gamemaster : MonoBehaviour
     private State gameState;
     private int PlayerUnitCount;
     private int AIUnitCount;
+    private int AIMovesRemaining;
+    private bool AIGaveMoves;
     public GameObject UIContainer;
     private UIManager ui;
 
@@ -44,19 +46,44 @@ public class Gamemaster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (gameState == State.VICTORY || gameState == State.DEFEAT) return;
+
         if (gameState != State.WAITING) {
-            if (PlayerUnitCount > 0 && AIUnitCount < 1) {
+            if (PlayerUnitCount > 0 && AIUnitCount <= 0) {
                 // Player victory
                 gameState = State.VICTORY;
+                ui.setVictory(Faction.PLAYER);
+                Debug.Log("VICTORY!");
             }
-            if (AIUnitCount > 0 && PlayerUnitCount < 1) {
+            if (AIUnitCount > 0 && PlayerUnitCount <= 0) {
                 // AI victory
                 gameState = State.DEFEAT;
+                ui.setVictory(Faction.COMPUTER);
+                Debug.Log("DEFEAT!");
             }            
         }
 
         if (gameState == State.AI_MOVE) {
             // iterate through AI and make them move
+            if (!AIGaveMoves) {
+                AIMovesRemaining = 0;
+                AIGaveMoves = true;
+                foreach (Combatant c in combatants) {
+                    if (c.UnitFaction == Faction.COMPUTER) {
+                        c.GetComponentInParent<EnemyAI>().gmMove();
+                        AIMovesRemaining++;
+                    }
+                }
+            }
+
+            // wait for 0 count on AIMovesRemaining
+            if (AIMovesRemaining == 0) {
+                AIMovesRemaining = -1;
+                endAITurn();
+            } 
+
+                      
+            
         }
 
         if (gameState == State.PLAYER_MOVE) {
@@ -68,9 +95,17 @@ public class Gamemaster : MonoBehaviour
         if (gameState == State.PLAYER_MOVE) {
             gameState = State.AI_MOVE;
             ui.setTurnIndicator(Faction.COMPUTER);
+            ResetActions(Faction.PLAYER);
         } else {
             Debug.Log("Can't end turn, not your turn!");        
         }
+    }
+
+    public void endAITurn() {
+        ui.setTurnIndicator(Faction.PLAYER);
+        gameState = State.PLAYER_MOVE;
+        AIGaveMoves = false;
+        ResetActions(Faction.COMPUTER);
     }
 
     public void startGame() {
@@ -91,6 +126,8 @@ public class Gamemaster : MonoBehaviour
         if (c.UnitFaction == Faction.COMPUTER) {
             AIUnitCount++;
         }
+        Debug.Log("P:" + PlayerUnitCount);
+        Debug.Log("AI:" + AIUnitCount);
     }
 
     public void RemoveCombatant(Combatant c) {
@@ -100,7 +137,9 @@ public class Gamemaster : MonoBehaviour
         }
         if (c.UnitFaction == Faction.COMPUTER) {
             AIUnitCount--;
-        } 
+        }
+        Debug.Log("P:" + PlayerUnitCount);
+        Debug.Log("AI:" + AIUnitCount);
     }
 
     public float GetDamageReductionMod() {
@@ -123,9 +162,20 @@ public class Gamemaster : MonoBehaviour
                 }
             }
         }
-
         return target;
+    } 
+
+    public void AIFinishedAction() {
+        AIMovesRemaining--;
+        Debug.Log("AI Finished a turn. " + AIMovesRemaining + " moves left.");
     }
 
-    
+    public void ResetActions(Faction faction) {
+        foreach (Combatant c in combatants) {
+            if (c.UnitFaction == faction) {
+                c.ResetActions();
+            }
+
+        }
+    } 
 }

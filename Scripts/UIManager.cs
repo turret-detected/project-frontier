@@ -37,6 +37,15 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void setVictory(Faction faction) {
+        if (faction == Faction.PLAYER) {
+            turnIndicator.text = "VICTORY!";
+        }
+        if (faction == Faction.COMPUTER) {
+            turnIndicator.text = "DEFEAT!";
+        }
+    }
+
     public void displaySelectedUnitBox(Combatant combatant) {
         unitSelectionPanel.gameObject.SetActive(true);
         unitName.text = combatant.UnitName;
