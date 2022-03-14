@@ -27,8 +27,8 @@ public class Gamemaster : MonoBehaviour
     List<Combatant> combatants = new List<Combatant>();
     public const float damageReductionMod = 0.975f; 
     private State gameState;
-    private int PlayerUnitCount;
-    private int AIUnitCount;
+    private int PlayerUnitCount = 0;
+    private int AIUnitCount = 0;
     private int AIMovesRemaining;
     private bool AIGaveMoves;
     public GameObject UIContainer;
@@ -38,8 +38,8 @@ public class Gamemaster : MonoBehaviour
     void Start()
     {
         gameState = State.WAITING;
-        PlayerUnitCount = 0;
-        AIUnitCount = 0;
+        //PlayerUnitCount = 0;
+        //AIUnitCount = 0;
         ui = UIContainer.GetComponent<UIManager>();
     }
 
@@ -121,6 +121,8 @@ public class Gamemaster : MonoBehaviour
     }
 
     public void AddCombatant(Combatant c) {
+        Debug.Log("P:" + PlayerUnitCount);
+        Debug.Log("AI:" + AIUnitCount);
         combatants.Add(c);
         if (c.UnitFaction == Faction.PLAYER) {
             PlayerUnitCount++;
@@ -133,6 +135,8 @@ public class Gamemaster : MonoBehaviour
     }
 
     public void RemoveCombatant(Combatant c) {
+        Debug.Log("P:" + PlayerUnitCount);
+        Debug.Log("AI:" + AIUnitCount);
         combatants.Remove(c);
         if (c.UnitFaction == Faction.PLAYER) {
             PlayerUnitCount--;

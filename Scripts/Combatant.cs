@@ -132,6 +132,7 @@ public class Combatant : MonoBehaviour
                 CurrentHealth = 0;
                 Debug.Log(name + " has died!");
                 // I AM DEAD, DO SOMETHING
+                // TODO play death anim and then remove
                 gameMaster.GetComponent<Gamemaster>().RemoveCombatant(this);
                 Destroy(gameObject);
             }
