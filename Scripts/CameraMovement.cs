@@ -68,6 +68,7 @@ public class CameraMovement : MonoBehaviour
         {
             // Move camera based on mouse movement
             transform.Translate(new Vector3(Input.GetAxis("Mouse X")*-1, 0, 0) * Time.deltaTime * rotation_scale);
+            // WHAT IS ROTATE AROUND
 
             // Align control cube with camera
             target.LookAt(transform);

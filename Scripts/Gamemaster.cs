@@ -46,8 +46,10 @@ public class Gamemaster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Game over
         if (gameState == State.VICTORY || gameState == State.DEFEAT) return;
 
+        // Check for victory or defeat
         if (gameState != State.WAITING) {
             if (PlayerUnitCount > 0 && AIUnitCount <= 0) {
                 // Player victory
@@ -131,8 +133,8 @@ public class Gamemaster : MonoBehaviour
     }
 
     public void RemoveCombatant(Combatant c) {
-       combatants.Remove(c);
-       if (c.UnitFaction == Faction.PLAYER) {
+        combatants.Remove(c);
+        if (c.UnitFaction == Faction.PLAYER) {
             PlayerUnitCount--;
         }
         if (c.UnitFaction == Faction.COMPUTER) {

@@ -7,6 +7,9 @@ public class EnemyAI : MonoBehaviour
     bool canMove;
     bool moving;
     public GameObject gameMaster;
+    public int weight_DISTANCE_TO_ENEMY = 100;
+    public int weight_ENEMY_DEFENSE = 0;
+    public int weight_ENEMY_HEALTH = 0;
     private Gamemaster gm;
     private MovementAI mover;
     private Combatant combatant;
@@ -32,6 +35,21 @@ public class EnemyAI : MonoBehaviour
         lastPos = transform.position;
     }
 
+    public GameObject calculateTarget() {
+
+        // GET A LIST OF ALL ENEMIES THIS AI KNOWS ABOUT
+        // FOR EACH ENEMY ASSIGN A VALUE FOR:
+        // DISTANCE
+        // HEALTH
+        // DEFENSES (ARMOR & WEAVE)
+        // RETURN THIS ENEMY
+
+
+
+        return null;
+
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -39,12 +57,12 @@ public class EnemyAI : MonoBehaviour
         if (canMove) {
             canMove = false;
             moving = true;
-            // WHERE IS THE NEAREST ENEMY?
-            target = gm.getNearestEnemy(gameObject);
+            // WHERE IS THE ~~NEAREST ENEMY?~~ BEST TARGET?
+            target = gm.getNearestEnemy(gameObject); // TODO REPLACE WITH calculateTarget()
             targetPos = target.transform.position;
             fullDistanceTraveled = 0;
             tempDistanceTraveled = 0; 
-            mover.MoveToSpace((int) targetPos.x, (int) targetPos.z);        
+            mover.MoveToSpace((int) Mathf.Round(targetPos.x), (int) Mathf.Round(targetPos.z));        
         }
 
 
@@ -64,7 +82,7 @@ public class EnemyAI : MonoBehaviour
                 // Do i have moves left?
                 if (fullDistanceTraveled >= combatant.MaxMoves) {
                     Debug.Log("Couldn't get close enough to attack target");
-                    mover.MoveToSpace((int) transform.position.x, (int) transform.position.z);
+                    mover.MoveToSpace((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
                     moving = false;
                     gm.AIFinishedAction();
                     // End turn
@@ -73,7 +91,7 @@ public class EnemyAI : MonoBehaviour
                 // test range
                 if (Vector3.Distance(transform.position, targetPos) <= combatant.AttackRange) {
                     // In range, attack!
-                    mover.MoveToSpace((int) transform.position.x, (int) transform.position.z);
+                    mover.MoveToSpace((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
                     moving = false;
                     Debug.Log("AI Attack!");
                     combatant.Attack(target.GetComponent<Combatant>());

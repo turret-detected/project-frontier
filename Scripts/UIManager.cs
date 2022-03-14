@@ -11,17 +11,29 @@ public class UIManager : MonoBehaviour
     public GameObject unitSelectionPanel;
     public Text unitName;
     public Text unitDesc;
+    private Combatant selectedUnit;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        selectedUnit = null;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (selectedUnit != null) {
+            unitSelectionPanel.gameObject.SetActive(true);
+            unitName.text = selectedUnit.UnitName;
+            unitDesc.text = 
+            "Health: " + selectedUnit.GetCurrentHealth() + 
+            "\nArmor: " + selectedUnit.Armor +
+            "\nWeave: " + selectedUnit.Weave +
+            "\nAttack: " + selectedUnit.AttackDamage + " " + selectedUnit.AttackType +
+            "\nRange: " + selectedUnit.AttackRange;
+        } else {
+            unitSelectionPanel.gameObject.SetActive(false);
+        }
     }
 
     public void destroyStartButton() {
@@ -46,19 +58,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void displaySelectedUnitBox(Combatant combatant) {
-        unitSelectionPanel.gameObject.SetActive(true);
-        unitName.text = combatant.UnitName;
-        unitDesc.text = 
-        "Health: " + combatant.GetCurrentHealth() + 
-        "\nArmor: " + combatant.Armor +
-        "\nWeave: " + combatant.Weave +
-        "\nAttack: " + combatant.AttackDamage + " " + combatant.AttackType +
-        "\nRange: " + combatant.AttackRange;
+    public void setSelectedUnit(Combatant combatant) {
+        selectedUnit = combatant;
     }
-
-    public void hideSelectedUnitBox() {
-        unitSelectionPanel.gameObject.SetActive(false);
-    }
-
 }

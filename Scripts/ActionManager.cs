@@ -32,7 +32,7 @@ public class ActionManager : MonoBehaviour
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(ray.origin, ray.direction * 100);
         if (Physics.Raycast(ray, out hit, 1000f)) {
-            if (selectedSelectable == null) {
+            //if (selectedSelectable == null) {
                 // Selection mode
                 if (Input.GetButtonDown("Select") && hit.transform.gameObject.tag == "Selectable" && hit.transform.gameObject != selectedSelectable) {
                     Debug.Log("Hit Selectable!");
@@ -41,10 +41,10 @@ public class ActionManager : MonoBehaviour
                     }
                     selectedSelectable = hit.transform.gameObject;
                     selectedSelectable.GetComponent<Combatant>().SetSelected(true);
-                    ui.displaySelectedUnitBox(selectedSelectable.GetComponent<Combatant>());
+                    ui.setSelectedUnit(selectedSelectable.GetComponent<Combatant>());
 
                 }
-            } else {
+            //} else {
                 if (gm.GetCurrentState() == State.PLAYER_MOVE) {
                     // Action mode
                     if (Input.GetButtonDown("Move") && hit.transform.gameObject.tag == "Terrain") {
@@ -65,12 +65,12 @@ public class ActionManager : MonoBehaviour
                     }
                     if (Input.GetButtonDown("Cancel")) {
                         Debug.Log("Deselected!");
-                        ui.hideSelectedUnitBox();
+                        ui.setSelectedUnit(null);
                         selectedSelectable.GetComponent<Combatant>().SetSelected(false);
                         selectedSelectable = null;
                     }
                 }
-            }
+            //}
         }            
     }
 }
