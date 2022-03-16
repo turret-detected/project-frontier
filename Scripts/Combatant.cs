@@ -3,27 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
+
 public class Combatant : MonoBehaviour
 {
     // GM
-    public GameObject gameMaster;
     private Gamemaster gm;
 
     // NAME, HEALTH, FACTION, MOVES
     public string UnitName;
+    public string prefabName;
     private int CurrentHealth;
     public int MaxHealth;
     public Faction UnitFaction;
     public int MaxMoves = 6;
-    private int remainingMoves;
+    public int remainingMoves;
     public int MaxAttacks = 1;
-    private int remainingAttacks;
+    public int remainingAttacks;
     
     // ARMOR
+    public string ArmorName;
     public int Armor;
     public int Weave;
     
     // WEAPON
+    public string WeaponName;
     public GameObject weapon;
     private GameObject weaponModel;
     public int AttackDamage;
@@ -43,17 +47,18 @@ public class Combatant : MonoBehaviour
 
 
     // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
         CurrentHealth = MaxHealth;
         remainingAttacks = MaxAttacks;
         remainingMoves = MaxMoves;
 
-        gm = gameMaster.GetComponent<Gamemaster>();
+        gm = GameObject.Find("GameMaster").GetComponent<Gamemaster>();
         gm.AddCombatant(this);
         damageReductionMod = gm.GetDamageReductionMod();
-        
+             
         anim = GetComponent<Animator>();
+        weapon = Resources.Load<GameObject>("Weapons/"+WeaponName);
         SetWeapon(weapon);
 
         movementScript = GetComponent<MovementAI>();
@@ -124,6 +129,7 @@ public class Combatant : MonoBehaviour
                 dmg = (int) (dmg * Mathf.Pow(damageReductionMod, Weave));
             }
             // do damage
+            // TODO hit anim
             CurrentHealth = CurrentHealth - dmg;
             Debug.Log("Hit!");
             Debug.Log("I have " + CurrentHealth.ToString());
@@ -133,7 +139,7 @@ public class Combatant : MonoBehaviour
                 Debug.Log(name + " has died!");
                 // I AM DEAD, DO SOMETHING
                 // TODO play death anim and then remove
-                gameMaster.GetComponent<Gamemaster>().RemoveCombatant(this);
+                gm.RemoveCombatant(this);
                 Destroy(gameObject);
             }
         } else {
@@ -185,10 +191,15 @@ public class Combatant : MonoBehaviour
         weaponModel = Instantiate(newWeapon.model);
 
         weaponModel.transform.position = hand.position;
-        weaponModel.transform.Rotate(newWeapon.rotation);
-        weaponModel.transform.Translate(newWeapon.offset);
+        weaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
+        weaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
         weaponModel.transform.SetParent(hand);
 
+    }
+
+
+    public UnitData CreateDataClass() {
+        return new UnitData(this);
     }
 
     

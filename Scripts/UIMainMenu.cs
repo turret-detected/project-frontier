@@ -18,6 +18,6 @@ public class UIMainMenu : MonoBehaviour
     }
 
     public void OnStartGame() {
-        SceneManager.LoadScene("CameraTestScene", LoadSceneMode.Single);
+        SceneManager.LoadScene("CombatDemoScene", LoadSceneMode.Single);
     }
 }

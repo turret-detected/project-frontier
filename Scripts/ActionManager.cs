@@ -11,7 +11,7 @@ public class ActionManager : MonoBehaviour
     private UIManager ui;
     private GameObject selectedSelectable;
     private bool isMoving;
-
+    private bool showingEscPanel = false;
 
     // Start is called before the first frame update
     void Start()
@@ -26,6 +26,11 @@ public class ActionManager : MonoBehaviour
     {
         if (selectedSelectable != null) {
             isMoving = selectedSelectable.GetComponent<MovementAI>().IsMoving();
+        } else {
+            if (Input.GetButtonDown("Cancel")) {
+                ui.toggleEscPanel(!showingEscPanel);
+                showingEscPanel = !showingEscPanel;
+            }
         }
 
         RaycastHit hit;

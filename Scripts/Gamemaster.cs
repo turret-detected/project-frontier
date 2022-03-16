@@ -3,17 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Xml;
+using System.Xml.Linq;
+using System.Text;
 
+[System.Serializable]
 public enum DamageType {
     PHYSICAL,
     MAGICAL
 }
 
+[System.Serializable]
 public enum Faction {
     PLAYER,
     COMPUTER
 }
 
+[System.Serializable]
 public enum State {
     PLAYER_MOVE,
     AI_MOVE,
@@ -82,10 +91,7 @@ public class Gamemaster : MonoBehaviour
             if (AIMovesRemaining == 0) {
                 AIMovesRemaining = -1;
                 endAITurn();
-            } 
-
-                      
-            
+            }    
         }
 
         if (gameState == State.PLAYER_MOVE) {
@@ -184,4 +190,103 @@ public class Gamemaster : MonoBehaviour
 
         }
     } 
+
+    public void saveGame() {
+        // only if player's turn
+        if (gameState == State.PLAYER_MOVE) {
+            List<UnitData> unitlist = new List<UnitData>();
+
+            foreach (Combatant c in combatants) {
+                unitlist.Add(c.CreateDataClass());
+            }
+
+            
+            //Code from: https://gamedevelopment.tutsplus.com/tutorials/how-to-save-and-load-your-players-progress-in-unity--cms-20934
+            /*
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Create(Application.persistentDataPath + "/savedGame.gd");
+            bf.Serialize(file, unitlist);
+            file.Close();
+            */
+
+            // TODO WHY DOES THIS ADD A BUNCH OF NULL AT THE END???
+            //Code from: https://stackoverflow.com/questions/36852213/how-to-serialize-and-save-a-gameobject-in-unity
+            FileStream file = File.Create(Application.persistentDataPath + "/savedGame.dat");
+
+            //Serialize to xml
+            DataContractSerializer bf = new DataContractSerializer(unitlist.GetType());
+            MemoryStream streamer = new MemoryStream();
+
+            //Serialize the file
+            bf.WriteObject(streamer, unitlist);
+            streamer.Seek(0, SeekOrigin.Begin);
+
+            //Save to disk
+            file.Write(streamer.GetBuffer(), 0, streamer.GetBuffer().Length);
+
+            // Close the file to prevent any corruptions
+            file.Close();
+
+            // DEBUG
+            string result = XElement.Parse(Encoding.ASCII.GetString(streamer.GetBuffer()).Replace("\0", "")).ToString();
+            Debug.Log(Application.persistentDataPath);
+            Debug.Log("Serialized Result: " + result);
+
+
+        } else {
+            Debug.Log("Can't save during AI turn!");
+        }
+    }
+
+    public void loadGame() {
+        gameState = State.WAITING;
+        List<UnitData> unitlist = new List<UnitData>();
+        
+        //Code from: https://gamedevelopment.tutsplus.com/tutorials/how-to-save-and-load-your-players-progress-in-unity--cms-20934
+        if(File.Exists(Application.persistentDataPath + "/savedGame.dat")) {
+
+            FileStream file = File.Open(Application.persistentDataPath + "/savedGame.dat", FileMode.Open);
+
+            // XML reader
+            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(file, new XmlDictionaryReaderQuotas());
+            DataContractSerializer bf = new DataContractSerializer(typeof(List<UnitData>));
+                     
+            // Read XML and convert
+            unitlist = (List<UnitData>)bf.ReadObject(reader, true);
+            Debug.Log("Test : "+unitlist[0].CurrentHealth);
+            reader.Close();
+            file.Close();
+
+            //Delete existing entities
+            foreach (Combatant c in combatants) {
+                Destroy(c.transform.parent.gameObject);
+            }
+            combatants.Clear();
+            AIUnitCount = 0;
+            PlayerUnitCount = 0;
+
+            //Create entities
+            foreach (UnitData u in unitlist) {
+                GameObject prefab = Resources.Load<GameObject>(u.UnitPrefabName);   
+                GameObject spawn = Instantiate(prefab);
+                Debug.Log("CHILD COUNT: "+spawn.transform.childCount);
+                
+                // Set pos
+                GameObject moveable = spawn.transform.GetChild(0).gameObject;
+                moveable.GetComponent<CharacterController>().enabled = false;
+                moveable.transform.position = u.Position; // okay thanks character controller. 
+                moveable.GetComponent<CharacterController>().enabled = true;
+                Debug.Log("Added Object at: X " + u.Position.x + " Y " + u.Position.y + " Z " + u.Position.z);   
+
+                // TODO
+                // INVENTORY/WEAPON/STATS/ROTATION
+            }
+        }
+        gameState = State.PLAYER_MOVE;
+    }
+
+    public void quitGame() {
+        //if saved
+        //exit
+    }
 }

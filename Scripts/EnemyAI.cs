@@ -14,17 +14,18 @@ public class EnemyAI : MonoBehaviour
     private MovementAI mover;
     private Combatant combatant;
     private float fullDistanceTraveled = 0;
-    private float tempDistanceTraveled = 0;
+    //private float tempDistanceTraveled = 0;
     private Vector3 lastPos;
     private GameObject target;
     private Vector3 targetPos;
 
     // Start is called before the first frame update
-    void Start()
+    public void Start()
     {
         mover = GetComponent<MovementAI>();
         combatant = GetComponent<Combatant>();
-        gm = gameMaster.GetComponent<Gamemaster>();
+        //gm = gameMaster.GetComponent<Gamemaster>();
+        gm = GameObject.Find("GameMaster").GetComponent<Gamemaster>();
         canMove = false;
         moving = false;
     }
@@ -61,7 +62,7 @@ public class EnemyAI : MonoBehaviour
             target = gm.getNearestEnemy(gameObject); // TODO REPLACE WITH calculateTarget()
             targetPos = target.transform.position;
             fullDistanceTraveled = 0;
-            tempDistanceTraveled = 0; 
+            //tempDistanceTraveled = 0; 
             mover.MoveToSpace((int) Mathf.Round(targetPos.x), (int) Mathf.Round(targetPos.z));        
         }
 
@@ -69,25 +70,11 @@ public class EnemyAI : MonoBehaviour
         if (moving) {
 
             fullDistanceTraveled += Vector3.Distance(lastPos, transform.position);
-            tempDistanceTraveled += Vector3.Distance(lastPos, transform.position);
             lastPos = transform.position;
+            //Debug.Log(tempDistanceTraveled + " | " + fullDistanceTraveled);
 
-
-            // MOVE TOWARDS IT
-            // STOP, TEST RANGE
-            // MOVE UNTIL IN RANGE (ENSURE SNAP TO TILE)
-            // ATTACK IT
-            // TELL GM I AM DONE
-            if (tempDistanceTraveled > 1) {
-                // Do i have moves left?
-                if (fullDistanceTraveled >= combatant.MaxMoves) {
-                    Debug.Log("Couldn't get close enough to attack target");
-                    mover.MoveToSpace((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
-                    moving = false;
-                    gm.AIFinishedAction();
-                    // End turn
-                }               
-            } else {
+            //While I have moves
+            if (fullDistanceTraveled < combatant.MaxMoves) {
                 // test range
                 if (Vector3.Distance(transform.position, targetPos) <= combatant.AttackRange) {
                     // In range, attack!
@@ -96,11 +83,14 @@ public class EnemyAI : MonoBehaviour
                     Debug.Log("AI Attack!");
                     combatant.Attack(target.GetComponent<Combatant>());
                     gm.AIFinishedAction();
-                    // END MY TURN
-                } else {
-                    // Not there yet, keep going!
-                    tempDistanceTraveled = 0;
+                    // End turn
                 }
+            } else {
+                Debug.Log("Couldn't get close enough to attack target");
+                mover.MoveToSpace((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
+                moving = false;
+                gm.AIFinishedAction();
+                // End turn
             }
         }
     }

@@ -12,11 +12,13 @@ public class UIManager : MonoBehaviour
     public Text unitName;
     public Text unitDesc;
     private Combatant selectedUnit;
+    public GameObject escMenuPanel;
 
     // Start is called before the first frame update
     void Start()
     {
         selectedUnit = null;
+        //gm = gameMaster.GetComponent<Gamemaster>();
     }
 
     // Update is called once per frame
@@ -60,5 +62,9 @@ public class UIManager : MonoBehaviour
 
     public void setSelectedUnit(Combatant combatant) {
         selectedUnit = combatant;
+    }
+
+    public void toggleEscPanel(bool value) {
+        escMenuPanel.gameObject.SetActive(value);
     }
 }
