@@ -28,7 +28,7 @@ public class UIManager : MonoBehaviour
             unitSelectionPanel.gameObject.SetActive(true);
             unitName.text = selectedUnit.UnitName;
             unitDesc.text = 
-            "Health: " + selectedUnit.GetCurrentHealth() + 
+            "Health: " + selectedUnit.CurrentHealth + 
             "\nArmor: " + selectedUnit.Armor +
             "\nWeave: " + selectedUnit.Weave +
             "\nAttack: " + selectedUnit.AttackDamage + " " + selectedUnit.AttackType +

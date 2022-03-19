@@ -14,6 +14,8 @@ public class MovementAI : MonoBehaviour
     private int currentWaypoint = 0;
     public bool reachedEndOfPath;
     private Vector3 destination;
+    private bool wasMoving = false;
+    private bool needToUpdate = false;
 
     // Start is called before the first frame update
     void Start()
@@ -22,7 +24,6 @@ public class MovementAI : MonoBehaviour
         anim = GetComponent<Animator>();
         seeker = GetComponent<Seeker>();
         controller = GetComponent<CharacterController>();
-        //seeker.StartPath(transform.position, targetPosition.position, OnPathComplete);
     }
 
     public void MoveToSpace(int x, int z) {
@@ -42,9 +43,31 @@ public class MovementAI : MonoBehaviour
         return !reachedEndOfPath;
     }
 
+    IEnumerator updateGraph() {
+        yield return new WaitForSeconds(1);
+        AstarPath.active.Scan();
+       // AstarPath.active.UpdateGraphs(GetComponentInParent<CharacterController>().bounds);
+    }
+
     // Update is called once per frame
     void Update()
     {
+        if (IsMoving()) {
+            wasMoving = true;
+        }
+
+        if (wasMoving && IsMoving() == false) {
+            wasMoving = false;
+            needToUpdate = true;
+        }
+
+        if (needToUpdate) {
+            needToUpdate = false;
+            Debug.Log("Requested graph update!");
+            StartCoroutine(updateGraph());
+        }
+
+
         anim.SetBool("IsMoving", IsMoving());
 
         // AI pathing

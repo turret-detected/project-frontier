@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 public class UnitData
 {
     [DataMember]
-    public string Name;
+    public string UnitName;
     
     [DataMember]
     public int MaxHealth;
@@ -52,19 +52,19 @@ public class UnitData
     public Quaternion Rotation;
 
     public UnitData(Combatant combatant) {
-        Name = combatant.name;
+        UnitName = combatant.UnitName;
         MaxHealth = combatant.MaxHealth;
-        CurrentHealth = combatant.GetCurrentHealth();
+        CurrentHealth = combatant.CurrentHealth;
         UnitFaction = combatant.UnitFaction;
         MaxMoves = combatant.MaxMoves;
-        RemainingMoves = combatant.remainingMoves;
+        RemainingMoves = combatant.RemainingMoves;
         MaxAttacks = combatant.MaxAttacks;
-        RemainingAttacks = combatant.remainingAttacks;
+        RemainingAttacks = combatant.RemainingAttacks;
         Armor = combatant.Armor;
         Weave = combatant.Weave;
         ArmorPrefabName = null;
         WeaponPrefabName = combatant.WeaponName;
-        UnitPrefabName = combatant.prefabName;
+        UnitPrefabName = combatant.PrefabName;
         Position = combatant.transform.position;
         Rotation = combatant.transform.rotation;
     }

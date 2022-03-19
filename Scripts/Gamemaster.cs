@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Linq;
 using System.Text;
+using System;
 
 [System.Serializable]
 public enum DamageType {
@@ -222,7 +223,8 @@ public class Gamemaster : MonoBehaviour
             streamer.Seek(0, SeekOrigin.Begin);
 
             //Save to disk
-            file.Write(streamer.GetBuffer(), 0, streamer.GetBuffer().Length);
+            // Fix nul bug: https://stackoverflow.com/questions/16086165/lots-of-unexpected-nul-caracters-at-the-end-of-an-xml-with-memorystream
+            file.Write(streamer.ToArray(), 0, streamer.ToArray().Length);
 
             // Close the file to prevent any corruptions
             file.Close();
@@ -267,19 +269,44 @@ public class Gamemaster : MonoBehaviour
 
             //Create entities
             foreach (UnitData u in unitlist) {
-                GameObject prefab = Resources.Load<GameObject>(u.UnitPrefabName);   
-                GameObject spawn = Instantiate(prefab);
-                Debug.Log("CHILD COUNT: "+spawn.transform.childCount);
                 
-                // Set pos
+                // Spawn the gameobject from prefab
+                GameObject spawn;
+                try {
+                    GameObject prefab = Resources.Load<GameObject>(u.UnitPrefabName);   
+                    spawn = Instantiate(prefab);
+                } catch (ArgumentException e) {
+                    spawn = null;
+                    Debug.Log("Couldn't find prefab. THIS IS A BUG! " + u.UnitPrefabName + " doesn't exist!");
+                    Debug.Log(e.StackTrace);
+                }
+                                
+                // Set pos & rotation
                 GameObject moveable = spawn.transform.GetChild(0).gameObject;
                 moveable.GetComponent<CharacterController>().enabled = false;
                 moveable.transform.position = u.Position; // okay thanks character controller. 
+                moveable.transform.rotation = u.Rotation;
                 moveable.GetComponent<CharacterController>().enabled = true;
                 Debug.Log("Added Object at: X " + u.Position.x + " Y " + u.Position.y + " Z " + u.Position.z);   
 
                 // TODO
-                // INVENTORY/WEAPON/STATS/ROTATION
+                // INVENTORY/STATS/
+                Combatant c = moveable.GetComponent<Combatant>();
+
+                c.UnitName = u.UnitName;
+                c.MaxHealth = u.MaxHealth;
+                c.CurrentHealth = u.CurrentHealth;
+                c.UnitFaction = u.UnitFaction;
+                c.MaxMoves = u.MaxMoves;
+                c.RemainingMoves = u.RemainingMoves;
+                c.MaxAttacks = u.MaxAttacks;
+                c.RemainingAttacks = u.RemainingAttacks;
+                c.Armor = u.Armor;
+                c.Weave = u.Weave;
+                //c.ArmorPrefabName = null;
+                //c.WeaponPrefabName = u.WeaponName;
+                //c.UnitPrefabName = u.PrefabName;
+
             }
         }
         gameState = State.PLAYER_MOVE;
@@ -288,5 +315,7 @@ public class Gamemaster : MonoBehaviour
     public void quitGame() {
         //if saved
         //exit
+        Debug.Log("Received Exit Command");
+        Application.Quit();
     }
 }

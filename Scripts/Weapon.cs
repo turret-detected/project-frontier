@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Weapon : MonoBehaviour
+public class Weapon : MonoBehaviour, IItem
 {
     public int Damage;
     public int Range;
@@ -10,18 +10,22 @@ public class Weapon : MonoBehaviour
     public GameObject model;
     public Vector3 offset;
     public Vector3 rotation;
+    public string parent_bone;
 
-
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    public string GetParentBone() {
+        return parent_bone;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public Vector3 GetOffset() {
+        return offset;
     }
+
+    public Vector3 GetRotation() {
+        return rotation;
+    }
+
+    public GameObject GetModel() {
+        return model;
+    }
+
 }

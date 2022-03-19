@@ -12,14 +12,14 @@ public class Combatant : MonoBehaviour
 
     // NAME, HEALTH, FACTION, MOVES
     public string UnitName;
-    public string prefabName;
-    private int CurrentHealth;
+    public string PrefabName;
+    public int CurrentHealth;
     public int MaxHealth;
     public Faction UnitFaction;
     public int MaxMoves = 6;
-    public int remainingMoves;
+    public int RemainingMoves;
     public int MaxAttacks = 1;
-    public int remainingAttacks;
+    public int RemainingAttacks;
     
     // ARMOR
     public string ArmorName;
@@ -28,8 +28,8 @@ public class Combatant : MonoBehaviour
     
     // WEAPON
     public string WeaponName;
-    public GameObject weapon;
-    private GameObject weaponModel;
+    public GameObject Weapon;
+    private GameObject WeaponModel;
     public int AttackDamage;
     public int AttackRange;
     public DamageType AttackType;
@@ -50,16 +50,16 @@ public class Combatant : MonoBehaviour
     public void Start()
     {
         CurrentHealth = MaxHealth;
-        remainingAttacks = MaxAttacks;
-        remainingMoves = MaxMoves;
+        RemainingAttacks = MaxAttacks;
+        RemainingMoves = MaxMoves;
 
         gm = GameObject.Find("GameMaster").GetComponent<Gamemaster>();
         gm.AddCombatant(this);
         damageReductionMod = gm.GetDamageReductionMod();
              
         anim = GetComponent<Animator>();
-        weapon = Resources.Load<GameObject>("Weapons/"+WeaponName);
-        SetWeapon(weapon);
+        Weapon = Resources.Load<GameObject>("Weapons/"+WeaponName);
+        SetWeapon(Weapon);
 
         movementScript = GetComponent<MovementAI>();
 
@@ -85,27 +85,24 @@ public class Combatant : MonoBehaviour
         anim.SetBool("Attacking", false);
     }
 
-    public int GetCurrentHealth() {
-        return this.CurrentHealth;
-    }
-
     public bool Move(int x, int z) {
         // TODO
         // ASK GM IF THERE'S A UNIT THERE
         // IF NOT
         // SEE IF I HAVE THE MOVES TO GET THERE (HOW CALC???)
         // IF YES, DO THE MOVE
+        movementScript.MoveToSpace(x, z);
 
         return false;
     }
 
     public void Attack(Combatant opponent) {
         // do i have an attack?
-        if (remainingAttacks > 0) {
+        if (RemainingAttacks > 0) {
             // am i in range?
             if (Vector3.Distance(transform.position, opponent.transform.position) <= (AttackRange + 0.55f)) {
                 /// attack!
-                remainingAttacks--;
+                RemainingAttacks--;
                 enemy = opponent;               
                 StartCoroutine(AttackAnim());
                 opponent.OnAttacked(this);
@@ -158,8 +155,8 @@ public class Combatant : MonoBehaviour
     }
 
     public void ResetActions() {
-        remainingAttacks = MaxAttacks;
-        remainingMoves = MaxMoves;
+        RemainingAttacks = MaxAttacks;
+        RemainingMoves = MaxMoves;
     }
 
     /*
@@ -184,16 +181,16 @@ public class Combatant : MonoBehaviour
         Transform hand = transform.Find(path);
         if (hand == null) Debug.Log("Tried to equip weapon, couldn't find hand!");
 
-        Destroy(weaponModel);
+        Destroy(WeaponModel);
         AttackDamage = newWeapon.Damage;
         AttackRange = newWeapon.Range;
         AttackType = newWeapon.DamageType;
-        weaponModel = Instantiate(newWeapon.model);
+        WeaponModel = Instantiate(newWeapon.model);
 
-        weaponModel.transform.position = hand.position;
-        weaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
-        weaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
-        weaponModel.transform.SetParent(hand);
+        WeaponModel.transform.position = hand.position;
+        WeaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
+        WeaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
+        WeaponModel.transform.SetParent(hand);
 
     }
 
