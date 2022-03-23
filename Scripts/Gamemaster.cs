@@ -32,6 +32,15 @@ public enum State {
     DEFEAT
 }
 
+[System.Serializable]
+public enum UnitClass {
+    NO_CLASS,
+    WARRIOR,
+    SCOUT,
+    MAGE,
+    CLERIC
+}
+
 public class Gamemaster : MonoBehaviour
 {
     List<Combatant> combatants = new List<Combatant>();
@@ -201,6 +210,7 @@ public class Gamemaster : MonoBehaviour
                 unitlist.Add(c.CreateDataClass());
             }
 
+            IOManager.WritePlayerDataToFile(unitlist);
             
             //Code from: https://gamedevelopment.tutsplus.com/tutorials/how-to-save-and-load-your-players-progress-in-unity--cms-20934
             /*
@@ -210,7 +220,7 @@ public class Gamemaster : MonoBehaviour
             file.Close();
             */
 
-            // TODO WHY DOES THIS ADD A BUNCH OF NULL AT THE END???
+            /*
             //Code from: https://stackoverflow.com/questions/36852213/how-to-serialize-and-save-a-gameobject-in-unity
             FileStream file = File.Create(Application.persistentDataPath + "/savedGame.dat");
 
@@ -233,6 +243,7 @@ public class Gamemaster : MonoBehaviour
             string result = XElement.Parse(Encoding.ASCII.GetString(streamer.GetBuffer()).Replace("\0", "")).ToString();
             Debug.Log(Application.persistentDataPath);
             Debug.Log("Serialized Result: " + result);
+            */
 
 
         } else {
@@ -293,6 +304,7 @@ public class Gamemaster : MonoBehaviour
                 // INVENTORY/STATS/
                 Combatant c = moveable.GetComponent<Combatant>();
 
+                c.UnitClass = u.UnitClass;
                 c.UnitName = u.UnitName;
                 c.MaxHealth = u.MaxHealth;
                 c.CurrentHealth = u.CurrentHealth;

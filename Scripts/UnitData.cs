@@ -8,6 +8,9 @@ public class UnitData
 {
     [DataMember]
     public string UnitName;
+
+    [DataMember]
+    public UnitClass UnitClass;
     
     [DataMember]
     public int MaxHealth;
@@ -53,6 +56,7 @@ public class UnitData
 
     public UnitData(Combatant combatant) {
         UnitName = combatant.UnitName;
+        UnitClass = combatant.UnitClass;
         MaxHealth = combatant.MaxHealth;
         CurrentHealth = combatant.CurrentHealth;
         UnitFaction = combatant.UnitFaction;
@@ -67,5 +71,26 @@ public class UnitData
         UnitPrefabName = combatant.PrefabName;
         Position = combatant.transform.position;
         Rotation = combatant.transform.rotation;
+    }
+
+    public UnitData(string Name, UnitClass c) {
+        UnitName = Name;
+        UnitClass = c;
+        MaxHealth = 100;
+        CurrentHealth = 100;
+        UnitFaction = Faction.PLAYER;
+        MaxMoves = 6;
+        RemainingMoves = 6;
+        MaxAttacks = 1;
+        RemainingAttacks = 1;
+        Armor = 0;
+        Weave = 0;
+        ArmorPrefabName = null;
+        WeaponPrefabName = null;
+        UnitPrefabName = null;
+        Position = new Vector3();
+        Rotation = new Quaternion();
+
+        /// GENERATE STATS HERE
     }
 }

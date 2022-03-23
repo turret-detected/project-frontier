@@ -8,4 +8,5 @@ public interface IItem
     Vector3 GetOffset();
     Vector3 GetRotation();
     GameObject GetModel();
+    string GetItemPrefabString();
 }

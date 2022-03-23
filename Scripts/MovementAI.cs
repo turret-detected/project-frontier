@@ -47,6 +47,9 @@ public class MovementAI : MonoBehaviour
         yield return new WaitForSeconds(1);
         AstarPath.active.Scan();
        // AstarPath.active.UpdateGraphs(GetComponentInParent<CharacterController>().bounds);
+       // Above doesn't clean up previous position
+       // Optimization: store bounds before and after move and update both instead of updating the whole graph
+       // Not really necessary right now
     }
 
     // Update is called once per frame

@@ -12,6 +12,7 @@ public class Combatant : MonoBehaviour
 
     // NAME, HEALTH, FACTION, MOVES
     public string UnitName;
+    public UnitClass UnitClass;
     public string PrefabName;
     public int CurrentHealth;
     public int MaxHealth;
@@ -23,12 +24,14 @@ public class Combatant : MonoBehaviour
     
     // ARMOR
     public string ArmorName;
+    public GameObject ArmorItem;
+    public GameObject ArmorModel;
     public int Armor;
     public int Weave;
     
     // WEAPON
     public string WeaponName;
-    public GameObject Weapon;
+    public GameObject WeaponItem;
     private GameObject WeaponModel;
     public int AttackDamage;
     public int AttackRange;
@@ -58,8 +61,8 @@ public class Combatant : MonoBehaviour
         damageReductionMod = gm.GetDamageReductionMod();
              
         anim = GetComponent<Animator>();
-        Weapon = Resources.Load<GameObject>("Weapons/"+WeaponName);
-        SetWeapon(Weapon);
+        WeaponItem = Resources.Load<GameObject>("Weapons/"+WeaponName);
+        SetWeapon(WeaponItem);
 
         movementScript = GetComponent<MovementAI>();
 
@@ -159,27 +162,14 @@ public class Combatant : MonoBehaviour
         RemainingMoves = MaxMoves;
     }
 
-    /*
-    public void SetWeapon(GameObject obj) { // atm, melee only // TODO make sure this handles multiple weapon types
-        string path = "root/pelvis/spine_01/spine_02/spine_03/clavicle_r/upperarm_r/lowerarm_r/hand_r/middle_01_r";
-        Transform hand = transform.Find(path);
-        if (hand == null) Debug.Log("didn't find it");
-        weapon = Instantiate(obj);
-        weapon.transform.position = hand.position;
-        weapon.transform.Rotate(90, 0, 0);
-        weapon.transform.Translate(0, 0, .05f);
-        weapon.transform.SetParent(hand);
-    }
-    */
-
     public void SetWeapon(GameObject newWeapon) {
-        SetWeapon(newWeapon.GetComponent<Weapon>());
+        SetWeapon(newWeapon.GetComponent<ItemWeapon>());
     }
 
-    public void SetWeapon(Weapon newWeapon) {
-        string path = "root/pelvis/spine_01/spine_02/spine_03/clavicle_r/upperarm_r/lowerarm_r/hand_r/middle_01_r";
-        Transform hand = transform.Find(path);
-        if (hand == null) Debug.Log("Tried to equip weapon, couldn't find hand!");
+    public void SetWeapon(ItemWeapon newWeapon) {
+        //string path = "root/pelvis/spine_01/spine_02/spine_03/clavicle_r/upperarm_r/lowerarm_r/hand_r/middle_01_r";
+        Transform bone = transform.Find(newWeapon.GetParentBone());
+        if (bone == null) Debug.Log("Tried to equip weapon, couldn't find bone!");
 
         Destroy(WeaponModel);
         AttackDamage = newWeapon.Damage;
@@ -187,12 +177,32 @@ public class Combatant : MonoBehaviour
         AttackType = newWeapon.DamageType;
         WeaponModel = Instantiate(newWeapon.model);
 
-        WeaponModel.transform.position = hand.position;
+        WeaponModel.transform.position = bone.position;
         WeaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
         WeaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
-        WeaponModel.transform.SetParent(hand);
-
+        WeaponModel.transform.SetParent(bone);
     }
+
+    public void SetArmor(GameObject newArmor) {
+        SetArmor(newArmor.GetComponent<ItemArmor>());
+    }
+
+    public void SetArmor(ItemArmor newArmor) {
+        Transform bone = transform.Find(newArmor.GetParentBone());
+        if (bone == null) Debug.Log("Tried to equip armor, couldn't find bone!");
+
+        Destroy(ArmorModel);
+        Armor = newArmor.Armor;
+        Weave = newArmor.Weave;
+        ArmorModel = Instantiate(newArmor.model);
+
+        // TODO FIX THIS DUPLICATE CODE
+        ArmorModel.transform.position = bone.position;
+        ArmorModel.transform.Rotate(newArmor.rotation); // TODO make this relative and not absolute
+        ArmorModel.transform.Translate(newArmor.offset); // TODO make this relative and not absolute
+        ArmorModel.transform.SetParent(bone);
+    }
+
 
 
     public UnitData CreateDataClass() {

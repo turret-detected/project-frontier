@@ -18,6 +18,6 @@ public class UIMainMenu : MonoBehaviour
     }
 
     public void OnStartGame() {
-        SceneManager.LoadScene("CombatDemoScene", LoadSceneMode.Single);
+        SceneManager.LoadScene("CharacterCreator", LoadSceneMode.Single);
     }
 }
