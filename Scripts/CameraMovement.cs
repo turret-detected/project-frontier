@@ -91,39 +91,6 @@ public class CameraMovement : MonoBehaviour
             transform.position = startingPos;
             transform.rotation = startingAngle;
             target.transform.position = targetStartingPos;
-        } 
-
-
-        /*
-        // Mouse Raycast
-        // Code from: https://bladecast.pro/unity-tutorial/raycast-from-camera-to-mouse-position
-        RaycastHit hit;
-        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-        Debug.DrawRay(ray.origin, ray.direction * 100);
-
-        
-        // Movement
-        if (Physics.Raycast(ray, out hit, 1000f)) {
-            if (hit.rigidbody != null) {
-
-                
-
-                //int x = (int)Math.Truncate(hit.point.x);
-                //int z = (int)Math.Truncate(hit.point.z);
-                //Vector3 targetedTile = new Vector3(x, 1, z);
-
-                
-                if (Input.GetButton("Select") && selectedTile != targetedTile) {
-                    selectedTile = targetedTile;
-                } 
-                
-
-                string temp = "X: " + hit.point.x.ToString() + "\nY: " + hit.point.y.ToString() + "\nZ: " + hit.point.z.ToString();
-                //string temp = "X: " + x.ToString() + "\nZ: " + z.ToString();
-                debug_text.text = temp;
-            }        
-        }
-        */
-           
+        }           
     }
 }

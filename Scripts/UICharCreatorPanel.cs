@@ -46,6 +46,7 @@ public class UICharCreatorPanel : MonoBehaviour
     {
         if (CurrentModel != null) {
             CurrentModel.GetComponentInChildren<MovementAI>().turnTowardTarget(MainCam.transform.position);
+            CurrentModel.GetComponentInChildren<CharacterController>().velocity.Set(0,0,0);
         }
     }
 

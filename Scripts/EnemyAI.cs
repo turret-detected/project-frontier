@@ -6,7 +6,7 @@ public class EnemyAI : MonoBehaviour
 {
     bool canMove;
     bool moving;
-    public GameObject gameMaster;
+    //public GameObject gameMaster;
     public int weight_DISTANCE_TO_ENEMY = 100;
     public int weight_ENEMY_DEFENSE = 0;
     public int weight_ENEMY_HEALTH = 0;

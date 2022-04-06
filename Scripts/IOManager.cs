@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+using System.Xml;
 using System.Xml.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -39,6 +40,32 @@ public class IOManager : MonoBehaviour
             return true;
         } catch {
             return false;
+        }
+    }
+
+
+    public static List<UnitData> ReadPlayerDataFromFile() {
+        try {
+            if(File.Exists(Application.persistentDataPath + "/savedGame.dat")) {
+
+                FileStream file = File.Open(Application.persistentDataPath + "/savedGame.dat", FileMode.Open);
+
+                // XML reader
+                XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(file, new XmlDictionaryReaderQuotas());
+                DataContractSerializer bf = new DataContractSerializer(typeof(List<UnitData>));
+                        
+                // Read XML and convert
+                List<UnitData> unitlist = (List<UnitData>)bf.ReadObject(reader, true);
+                Debug.Log("Test : "+unitlist[0].CurrentHealth);
+                reader.Close();
+                file.Close();
+
+                return unitlist;
+
+            }
+            return null;
+        } catch {
+            return null;
         }
     }
 }

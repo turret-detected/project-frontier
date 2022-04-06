@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 using System.Runtime.Serialization;
 
@@ -11,7 +12,7 @@ public class UnitData
 
     [DataMember]
     public UnitClass UnitClass;
-    
+        
     [DataMember]
     public int MaxHealth;
     
@@ -54,6 +55,9 @@ public class UnitData
     [DataMember]
     public Quaternion Rotation;
 
+    [DataMember]    
+    public string UnitDisplayName;
+
     public UnitData(Combatant combatant) {
         UnitName = combatant.UnitName;
         UnitClass = combatant.UnitClass;
@@ -66,11 +70,13 @@ public class UnitData
         RemainingAttacks = combatant.RemainingAttacks;
         Armor = combatant.Armor;
         Weave = combatant.Weave;
-        ArmorPrefabName = null;
+        ArmorPrefabName = combatant.ArmorName;
         WeaponPrefabName = combatant.WeaponName;
         UnitPrefabName = combatant.PrefabName;
         Position = combatant.transform.position;
         Rotation = combatant.transform.rotation;
+        UnitDisplayName = UnitName + " (" + StringEnums.GetUnitClassString(UnitClass) + ")";
+        Debug.Log(UnitDisplayName);
     }
 
     public UnitData(string Name, UnitClass c) {
@@ -87,10 +93,34 @@ public class UnitData
         Weave = 0;
         ArmorPrefabName = null;
         WeaponPrefabName = null;
-        UnitPrefabName = null;
+        UnitPrefabName = GetClassPrefab(c);
         Position = new Vector3();
         Rotation = new Quaternion();
+        UnitDisplayName = UnitName + " (" + StringEnums.GetUnitClassString(UnitClass) + ")";
+        Debug.Log(UnitDisplayName);
 
         /// GENERATE STATS HERE
     }
+
+
+    public string GetClassPrefab(UnitClass c) {
+        if (c == UnitClass.WARRIOR) {
+            return "Player Warrior";
+        }
+
+        if (c == UnitClass.CLERIC) {
+            return "Player Cleric";
+        }
+
+        if (c == UnitClass.MAGE) {
+            return "Player Mage";
+        }
+
+        if (c == UnitClass.SCOUT) {
+            return "Player Scout";
+        }
+        throw new ArgumentException("Invalid class");
+
+    }
+
 }

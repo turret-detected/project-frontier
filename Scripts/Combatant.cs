@@ -21,17 +21,18 @@ public class Combatant : MonoBehaviour
     public int RemainingMoves;
     public int MaxAttacks = 1;
     public int RemainingAttacks;
+    public bool InCover = false;
     
     // ARMOR
     public string ArmorName;
-    public GameObject ArmorItem;
-    public GameObject ArmorModel;
+    private GameObject ArmorItem;
+    private GameObject ArmorModel;
     public int Armor;
     public int Weave;
     
     // WEAPON
     public string WeaponName;
-    public GameObject WeaponItem;
+    private GameObject WeaponItem;
     private GameObject WeaponModel;
     public int AttackDamage;
     public int AttackRange;
@@ -39,8 +40,9 @@ public class Combatant : MonoBehaviour
     
     // CONSTS
     private float damageReductionMod;
-    public GameObject selectionHighlightPrefab;
+    private GameObject selectionHighlightPrefab;
     private GameObject activeSelectionHighlight;
+    private int ignoreActionLayer = 1 << 20;
 
     // ANIM
     private Animator anim;
@@ -49,12 +51,39 @@ public class Combatant : MonoBehaviour
     private Combatant enemy;
 
 
+    // LOAD AND SAVE
+    public void SetUnitData(UnitData u) {
+        UnitClass = u.UnitClass;
+        UnitName = u.UnitName;
+        MaxHealth = u.MaxHealth;
+        CurrentHealth = u.CurrentHealth;
+        UnitFaction = u.UnitFaction;
+        MaxMoves = u.MaxMoves;
+        RemainingMoves = u.RemainingMoves;
+        MaxAttacks = u.MaxAttacks;
+        RemainingAttacks = u.RemainingAttacks;
+        Armor = u.Armor;
+        Weave = u.Weave;
+
+        // TODO proper setup of weapons
+        //c.ArmorPrefabName = null;
+        //c.WeaponPrefabName = u.WeaponName;
+        //c.UnitPrefabName = u.PrefabName;
+    }
+
+    public UnitData CreateDataClass() {
+        return new UnitData(this);
+    }
+
+
     // Start is called before the first frame update
     public void Start()
     {
         CurrentHealth = MaxHealth;
         RemainingAttacks = MaxAttacks;
         RemainingMoves = MaxMoves;
+
+        selectionHighlightPrefab = Resources.Load<GameObject>("Unit Selected Outline");
 
         gm = GameObject.Find("GameMaster").GetComponent<Gamemaster>();
         gm.AddCombatant(this);
@@ -108,7 +137,7 @@ public class Combatant : MonoBehaviour
                 RemainingAttacks--;
                 enemy = opponent;               
                 StartCoroutine(AttackAnim());
-                opponent.OnAttacked(this);
+                opponent.OnAttacked(this, IsTargetInCover(opponent.transform.position));
             } else {
                 Debug.Log("Out of range!");
             }
@@ -117,12 +146,14 @@ public class Combatant : MonoBehaviour
         }
     }
 
-    public void OnAttacked(Combatant opponent) {
+    public void OnAttacked(Combatant opponent, bool inCover) {
         int roll = Random.Range(1, 19); // 1 to 20
-        if (roll != 1) {
+        if (inCover) roll = roll - 5; //-5 penalty for target being in cover
+        
+        if (roll > 1) {
             // hit
             int dmg = opponent.AttackDamage;
-            // dmg reduction
+            // dmg reduction (TODO allow for other damage types)
             if (opponent.AttackType == DamageType.PHYSICAL) {
                 dmg = (int) (dmg * Mathf.Pow(damageReductionMod, Armor));
             } else {
@@ -137,8 +168,11 @@ public class Combatant : MonoBehaviour
             if (CurrentHealth < 0) {
                 CurrentHealth = 0;
                 Debug.Log(name + " has died!");
-                // I AM DEAD, DO SOMETHING
-                // TODO play death anim and then remove
+                // Death todo
+                // If player unit, log death with save somehow
+                // All units:
+                // Ragdoll, drop weapon
+                // timed remove corpse
                 gm.RemoveCombatant(this);
                 Destroy(gameObject);
             }
@@ -147,6 +181,7 @@ public class Combatant : MonoBehaviour
         }
     }
 
+    // TODO move this somewhere else
     public void SetSelected(bool b) { 
         if (b) {
             activeSelectionHighlight = Instantiate(selectionHighlightPrefab, transform.position, Quaternion.identity);
@@ -154,7 +189,6 @@ public class Combatant : MonoBehaviour
         } else {
             Destroy(activeSelectionHighlight);
         }
-        
     }
 
     public void ResetActions() {
@@ -168,6 +202,7 @@ public class Combatant : MonoBehaviour
 
     public void SetWeapon(ItemWeapon newWeapon) {
         //string path = "root/pelvis/spine_01/spine_02/spine_03/clavicle_r/upperarm_r/lowerarm_r/hand_r/middle_01_r";
+        //string path = "Root/Hips/Spine_01/Spine_02/Spine_03/Clavicle_R/Shoulder_R/Elbow_R/Hand_R";
         Transform bone = transform.Find(newWeapon.GetParentBone());
         if (bone == null) Debug.Log("Tried to equip weapon, couldn't find bone!");
 
@@ -178,9 +213,10 @@ public class Combatant : MonoBehaviour
         WeaponModel = Instantiate(newWeapon.model);
 
         WeaponModel.transform.position = bone.position;
-        WeaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
-        WeaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
         WeaponModel.transform.SetParent(bone);
+        WeaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
+        WeaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
+        
     }
 
     public void SetArmor(GameObject newArmor) {
@@ -204,9 +240,16 @@ public class Combatant : MonoBehaviour
     }
 
 
+    public bool IsTargetInCover(Vector3 pos) {
+        Vector3 adj = new Vector3(0, 1, 0); // since the linecast is at feet? ensure it'll hit higher hitbox for cover
+        RaycastHit hit;
+        bool temp = Physics.Linecast(transform.position+adj, pos+adj, out hit, ignoreActionLayer);
+        Debug.Log("Cover hit: " + temp + " @ " + hit.point.x + " " + hit.point.y + " " + hit.point.z);
+        return temp;
+    }
 
-    public UnitData CreateDataClass() {
-        return new UnitData(this);
+    public void SetSelfInCover(bool b) {
+        InCover = b;
     }
 
     

@@ -34,7 +34,7 @@ public class UICharacterCreator : MonoBehaviour
 
         // Save and start game
         IOManager.WritePlayerDataToFile(unitlist);
-        SceneManager.LoadScene("CombatDemoScene", LoadSceneMode.Single);
+        SceneManager.LoadScene("FullSizeTest", LoadSceneMode.Single);
 
 
     }

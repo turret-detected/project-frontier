@@ -28,6 +28,7 @@ public enum State {
     PLAYER_MOVE,
     AI_MOVE,
     WAITING,
+    SETUP,
     VICTORY,
     DEFEAT
 }
@@ -52,13 +53,13 @@ public class Gamemaster : MonoBehaviour
     private bool AIGaveMoves;
     public GameObject UIContainer;
     private UIManager ui;
+    private List<UnitData> unitlist;
 
     // Start is called before the first frame update
     void Start()
     {
+        unitlist = new List<UnitData>();
         gameState = State.WAITING;
-        //PlayerUnitCount = 0;
-        //AIUnitCount = 0;
         ui = UIContainer.GetComponent<UIManager>();
     }
 
@@ -68,8 +69,13 @@ public class Gamemaster : MonoBehaviour
         // Game over
         if (gameState == State.VICTORY || gameState == State.DEFEAT) return;
 
+        // Placement is done, start the game!
+        if (gameState == State.SETUP && ui.isPlacementListEmpty()) {
+            endSetup();
+        }
+
         // Check for victory or defeat
-        if (gameState != State.WAITING) {
+        if (gameState == State.PLAYER_MOVE || gameState == State.AI_MOVE) {
             if (PlayerUnitCount > 0 && AIUnitCount <= 0) {
                 // Player victory
                 gameState = State.VICTORY;
@@ -128,11 +134,34 @@ public class Gamemaster : MonoBehaviour
 
     public void startGame() {
         if (gameState == State.WAITING) {
+            // ui updates
             ui.destroyStartButton();
+            ui.togglePlacementPanel(true);
+            gameState = State.SETUP;
+            
+            // get list of players
+            List<string> namelist = new List<string>();
+            unitlist = IOManager.ReadPlayerDataFromFile();
+            foreach (UnitData unit in unitlist) {
+                if (unit.UnitFaction == Faction.PLAYER) {
+                    namelist.Add(unit.UnitDisplayName);
+                }
+            }
+
+            // update ui
+            ui.populatePlacementList(namelist);
+        } else {
+            Debug.Log("Tried to move to setup but was in state " + gameState);
+        }
+    }
+
+    public void endSetup() {
+        if (gameState == State.SETUP) {
+            ui.togglePlacementPanel(false);
             ui.setTurnIndicator(Faction.PLAYER);
             gameState = State.PLAYER_MOVE;
         } else {
-            Debug.Log("Tried to start game but it already started!");
+            Debug.Log("Tried to start game but but was in state " + gameState);
         }
     }
 
@@ -199,7 +228,48 @@ public class Gamemaster : MonoBehaviour
             }
 
         }
-    } 
+    }
+
+    public UnitData GetUnitDataFromName(string s) {
+        foreach (UnitData u in unitlist) {
+            if (u.UnitDisplayName.Equals(s)) {
+                return u;
+            }
+        }
+
+
+        // TODO turn the string into a unitdata from the stored list
+        return null;
+    }
+
+    public void SpawnUnitFromDataAtPos(UnitData data, Vector3 pos) {
+        data.Position = pos;
+        SpawnUnitFromData(data);
+    }
+
+    public void SpawnUnitFromData(UnitData data) {
+        // Spawn the gameobject from prefab
+        GameObject spawn;
+        try {
+            GameObject prefab = Resources.Load<GameObject>(data.UnitPrefabName);   
+            spawn = Instantiate(prefab);
+        } catch (ArgumentException e) {
+            spawn = null;
+            Debug.Log("Couldn't find prefab. THIS IS A BUG! " + data.UnitPrefabName + " doesn't exist!");
+            Debug.Log(e.StackTrace);
+        }
+                        
+        // Set pos, rotation, and stats
+        GameObject moveable = spawn.transform.GetChild(0).gameObject;
+        moveable.GetComponent<CharacterController>().enabled = false;
+        moveable.transform.position = data.Position; // char controller needs to off to do this for some reason? 
+        moveable.transform.rotation = data.Rotation;
+        moveable.GetComponent<CharacterController>().enabled = true;
+        Combatant c = moveable.GetComponent<Combatant>();
+        c.SetUnitData(data);
+        Debug.Log("Added Object at: X " + data.Position.x + " Y " + data.Position.y + " Z " + data.Position.z);
+    
+    }
 
     public void saveGame() {
         // only if player's turn
@@ -210,42 +280,7 @@ public class Gamemaster : MonoBehaviour
                 unitlist.Add(c.CreateDataClass());
             }
 
-            IOManager.WritePlayerDataToFile(unitlist);
-            
-            //Code from: https://gamedevelopment.tutsplus.com/tutorials/how-to-save-and-load-your-players-progress-in-unity--cms-20934
-            /*
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Create(Application.persistentDataPath + "/savedGame.gd");
-            bf.Serialize(file, unitlist);
-            file.Close();
-            */
-
-            /*
-            //Code from: https://stackoverflow.com/questions/36852213/how-to-serialize-and-save-a-gameobject-in-unity
-            FileStream file = File.Create(Application.persistentDataPath + "/savedGame.dat");
-
-            //Serialize to xml
-            DataContractSerializer bf = new DataContractSerializer(unitlist.GetType());
-            MemoryStream streamer = new MemoryStream();
-
-            //Serialize the file
-            bf.WriteObject(streamer, unitlist);
-            streamer.Seek(0, SeekOrigin.Begin);
-
-            //Save to disk
-            // Fix nul bug: https://stackoverflow.com/questions/16086165/lots-of-unexpected-nul-caracters-at-the-end-of-an-xml-with-memorystream
-            file.Write(streamer.ToArray(), 0, streamer.ToArray().Length);
-
-            // Close the file to prevent any corruptions
-            file.Close();
-
-            // DEBUG
-            string result = XElement.Parse(Encoding.ASCII.GetString(streamer.GetBuffer()).Replace("\0", "")).ToString();
-            Debug.Log(Application.persistentDataPath);
-            Debug.Log("Serialized Result: " + result);
-            */
-
-
+            IOManager.WritePlayerDataToFile(unitlist); // TODO don't ignore boolean
         } else {
             Debug.Log("Can't save during AI turn!");
         }
@@ -253,23 +288,10 @@ public class Gamemaster : MonoBehaviour
 
     public void loadGame() {
         gameState = State.WAITING;
-        List<UnitData> unitlist = new List<UnitData>();
-        
-        //Code from: https://gamedevelopment.tutsplus.com/tutorials/how-to-save-and-load-your-players-progress-in-unity--cms-20934
-        if(File.Exists(Application.persistentDataPath + "/savedGame.dat")) {
-
-            FileStream file = File.Open(Application.persistentDataPath + "/savedGame.dat", FileMode.Open);
-
-            // XML reader
-            XmlDictionaryReader reader = XmlDictionaryReader.CreateTextReader(file, new XmlDictionaryReaderQuotas());
-            DataContractSerializer bf = new DataContractSerializer(typeof(List<UnitData>));
-                     
-            // Read XML and convert
-            unitlist = (List<UnitData>)bf.ReadObject(reader, true);
-            Debug.Log("Test : "+unitlist[0].CurrentHealth);
-            reader.Close();
-            file.Close();
-
+        List<UnitData> unitlist = IOManager.ReadPlayerDataFromFile();
+        if (unitlist == null) {
+            Debug.Log("Couldn't load, error!");
+        } else {
             //Delete existing entities
             foreach (Combatant c in combatants) {
                 Destroy(c.transform.parent.gameObject);
@@ -280,48 +302,10 @@ public class Gamemaster : MonoBehaviour
 
             //Create entities
             foreach (UnitData u in unitlist) {
-                
-                // Spawn the gameobject from prefab
-                GameObject spawn;
-                try {
-                    GameObject prefab = Resources.Load<GameObject>(u.UnitPrefabName);   
-                    spawn = Instantiate(prefab);
-                } catch (ArgumentException e) {
-                    spawn = null;
-                    Debug.Log("Couldn't find prefab. THIS IS A BUG! " + u.UnitPrefabName + " doesn't exist!");
-                    Debug.Log(e.StackTrace);
-                }
-                                
-                // Set pos & rotation
-                GameObject moveable = spawn.transform.GetChild(0).gameObject;
-                moveable.GetComponent<CharacterController>().enabled = false;
-                moveable.transform.position = u.Position; // okay thanks character controller. 
-                moveable.transform.rotation = u.Rotation;
-                moveable.GetComponent<CharacterController>().enabled = true;
-                Debug.Log("Added Object at: X " + u.Position.x + " Y " + u.Position.y + " Z " + u.Position.z);   
-
-                // TODO
-                // INVENTORY/STATS/
-                Combatant c = moveable.GetComponent<Combatant>();
-
-                c.UnitClass = u.UnitClass;
-                c.UnitName = u.UnitName;
-                c.MaxHealth = u.MaxHealth;
-                c.CurrentHealth = u.CurrentHealth;
-                c.UnitFaction = u.UnitFaction;
-                c.MaxMoves = u.MaxMoves;
-                c.RemainingMoves = u.RemainingMoves;
-                c.MaxAttacks = u.MaxAttacks;
-                c.RemainingAttacks = u.RemainingAttacks;
-                c.Armor = u.Armor;
-                c.Weave = u.Weave;
-                //c.ArmorPrefabName = null;
-                //c.WeaponPrefabName = u.WeaponName;
-                //c.UnitPrefabName = u.PrefabName;
-
+                SpawnUnitFromData(u);
             }
         }
-        gameState = State.PLAYER_MOVE;
+        gameState = State.PLAYER_MOVE; // Since we can only save during player turn
     }
 
     public void quitGame() {

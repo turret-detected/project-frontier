@@ -12,6 +12,7 @@ public class ActionManager : MonoBehaviour
     private GameObject selectedSelectable;
     private bool isMoving;
     private bool showingEscPanel = false;
+    private int ignoreActionLayer = 1 << 20;
 
     // Start is called before the first frame update
     void Start()
@@ -36,7 +37,25 @@ public class ActionManager : MonoBehaviour
         RaycastHit hit;
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(ray.origin, ray.direction * 100);
-        if (Physics.Raycast(ray, out hit, 1000f)) {
+        if (Physics.Raycast(ray, out hit, 1000f, ~ignoreActionLayer)) {
+
+            // Placement mode
+            if (Input.GetButtonDown("Select") && gm.GetCurrentState() == State.SETUP && hit.transform.gameObject.tag == "PlayerSpawnPoint") {
+                Vector3 pos = hit.transform.position + (Vector3.down/2);
+                string temp = ui.getSelectedUnitToPlace();
+                UnitData unit = gm.GetUnitDataFromName(temp);
+                gm.SpawnUnitFromDataAtPos(unit, pos);
+                ui.placedUnit(temp);
+                
+                // destroy parent to remove smoke
+                Destroy(hit.transform.parent.gameObject);
+                // but not this way, because the smoke stops instantly, it should fade out
+                // instead: disable hitbox, and turn off emitter
+
+            }
+
+
+
 
             // Selection mode
             if (Input.GetButtonDown("Select") && hit.transform.gameObject.tag == "Selectable" && hit.transform.gameObject != selectedSelectable) {
