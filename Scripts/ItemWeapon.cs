@@ -8,7 +8,6 @@ public class ItemWeapon : MonoBehaviour, IItem
     public int Damage;
     public int Range;
     public DamageType DamageType;
-    public GameObject model;
     public Vector3 offset;
     public Vector3 rotation;
     public string parent_bone;
@@ -23,10 +22,6 @@ public class ItemWeapon : MonoBehaviour, IItem
 
     public Vector3 GetRotation() {
         return rotation;
-    }
-
-    public GameObject GetModel() {
-        return model;
     }
     
     public string GetItemPrefabString() {

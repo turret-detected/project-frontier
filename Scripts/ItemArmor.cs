@@ -7,7 +7,6 @@ public class ItemArmor : MonoBehaviour, IItem
     public string PrefabName;
     public int Armor;
     public int Weave;
-    public GameObject model;
     public Vector3 offset;
     public Vector3 rotation;
     public string parent_bone;
@@ -22,10 +21,6 @@ public class ItemArmor : MonoBehaviour, IItem
 
     public Vector3 GetRotation() {
         return rotation;
-    }
-
-    public GameObject GetModel() {
-        return model;
     }
     
     public string GetItemPrefabString() {

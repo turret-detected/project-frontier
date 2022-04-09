@@ -166,8 +166,8 @@ public class Gamemaster : MonoBehaviour
     }
 
     public void AddCombatant(Combatant c) {
-        Debug.Log("P:" + PlayerUnitCount);
-        Debug.Log("AI:" + AIUnitCount);
+        //Debug.Log("P:" + PlayerUnitCount);
+        //Debug.Log("AI:" + AIUnitCount);
         combatants.Add(c);
         if (c.UnitFaction == Faction.PLAYER) {
             PlayerUnitCount++;
@@ -175,13 +175,13 @@ public class Gamemaster : MonoBehaviour
         if (c.UnitFaction == Faction.COMPUTER) {
             AIUnitCount++;
         }
-        Debug.Log("P:" + PlayerUnitCount);
-        Debug.Log("AI:" + AIUnitCount);
+        //Debug.Log("P:" + PlayerUnitCount);
+        //Debug.Log("AI:" + AIUnitCount);
     }
 
     public void RemoveCombatant(Combatant c) {
-        Debug.Log("P:" + PlayerUnitCount);
-        Debug.Log("AI:" + AIUnitCount);
+        //Debug.Log("P:" + PlayerUnitCount);
+        //Debug.Log("AI:" + AIUnitCount);
         combatants.Remove(c);
         if (c.UnitFaction == Faction.PLAYER) {
             PlayerUnitCount--;
@@ -189,8 +189,8 @@ public class Gamemaster : MonoBehaviour
         if (c.UnitFaction == Faction.COMPUTER) {
             AIUnitCount--;
         }
-        Debug.Log("P:" + PlayerUnitCount);
-        Debug.Log("AI:" + AIUnitCount);
+        //Debug.Log("P:" + PlayerUnitCount);
+        //Debug.Log("AI:" + AIUnitCount);
     }
 
     public float GetDamageReductionMod() {

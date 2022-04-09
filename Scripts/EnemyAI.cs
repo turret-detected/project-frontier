@@ -6,7 +6,6 @@ public class EnemyAI : MonoBehaviour
 {
     bool canMove;
     bool moving;
-    //public GameObject gameMaster;
     public int weight_DISTANCE_TO_ENEMY = 100;
     public int weight_ENEMY_DEFENSE = 0;
     public int weight_ENEMY_HEALTH = 0;
@@ -24,7 +23,6 @@ public class EnemyAI : MonoBehaviour
     {
         mover = GetComponent<MovementAI>();
         combatant = GetComponent<Combatant>();
-        //gm = gameMaster.GetComponent<Gamemaster>();
         gm = GameObject.Find("GameMaster").GetComponent<Gamemaster>();
         canMove = false;
         moving = false;

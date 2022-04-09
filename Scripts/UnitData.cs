@@ -91,8 +91,8 @@ public class UnitData
         RemainingAttacks = 1;
         Armor = 0;
         Weave = 0;
-        ArmorPrefabName = null;
-        WeaponPrefabName = null;
+        ArmorPrefabName = GetClassArmorPrefab(c);
+        WeaponPrefabName = GetClassWeaponPrefab(c);
         UnitPrefabName = GetClassPrefab(c);
         Position = new Vector3();
         Rotation = new Quaternion();
@@ -121,6 +121,44 @@ public class UnitData
         }
         throw new ArgumentException("Invalid class");
 
+    }
+
+    public string GetClassWeaponPrefab(UnitClass c) {
+        if (c == UnitClass.WARRIOR) {
+            return "Longsword";
+        }
+
+        if (c == UnitClass.CLERIC) {
+            return "Longsword";
+        }
+
+        if (c == UnitClass.MAGE) {
+            return "Mage Staff";
+        }
+
+        if (c == UnitClass.SCOUT) {
+            return "Longsword";
+        }
+        throw new ArgumentException("Invalid class");
+    }
+
+    public string GetClassArmorPrefab(UnitClass c) {
+        if (c == UnitClass.WARRIOR) {
+            return "Iron Armor";
+        }
+
+        if (c == UnitClass.CLERIC) {
+            return "Leather Armor";
+        }
+
+        if (c == UnitClass.MAGE) {
+            return "Mage Robes";
+        }
+
+        if (c == UnitClass.SCOUT) {
+            return "Leather Armor";
+        }
+        throw new ArgumentException("Invalid class");
     }
 
 }

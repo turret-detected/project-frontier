@@ -62,13 +62,9 @@ public class Combatant : MonoBehaviour
         RemainingMoves = u.RemainingMoves;
         MaxAttacks = u.MaxAttacks;
         RemainingAttacks = u.RemainingAttacks;
-        Armor = u.Armor;
-        Weave = u.Weave;
-
-        // TODO proper setup of weapons
-        //c.ArmorPrefabName = null;
-        //c.WeaponPrefabName = u.WeaponName;
-        //c.UnitPrefabName = u.PrefabName;
+        ArmorName = u.ArmorPrefabName;
+        WeaponName = u.WeaponPrefabName;
+        PrefabName = u.UnitPrefabName;
     }
 
     public UnitData CreateDataClass() {
@@ -92,6 +88,9 @@ public class Combatant : MonoBehaviour
         anim = GetComponent<Animator>();
         WeaponItem = Resources.Load<GameObject>("Weapons/"+WeaponName);
         SetWeapon(WeaponItem);
+        //Debug.Log(ArmorName);
+        ArmorItem = Resources.Load<GameObject>("Armor/"+ArmorName);
+        SetArmor(ArmorItem);
 
         movementScript = GetComponent<MovementAI>();
 
@@ -156,8 +155,10 @@ public class Combatant : MonoBehaviour
             // dmg reduction (TODO allow for other damage types)
             if (opponent.AttackType == DamageType.PHYSICAL) {
                 dmg = (int) (dmg * Mathf.Pow(damageReductionMod, Armor));
-            } else {
+            } else if (opponent.AttackType == DamageType.MAGICAL) {
                 dmg = (int) (dmg * Mathf.Pow(damageReductionMod, Weave));
+            } else {
+                dmg = (int) dmg * 1; // True damage
             }
             // do damage
             // TODO hit anim
@@ -201,17 +202,16 @@ public class Combatant : MonoBehaviour
     }
 
     public void SetWeapon(ItemWeapon newWeapon) {
-        //string path = "root/pelvis/spine_01/spine_02/spine_03/clavicle_r/upperarm_r/lowerarm_r/hand_r/middle_01_r";
-        //string path = "Root/Hips/Spine_01/Spine_02/Spine_03/Clavicle_R/Shoulder_R/Elbow_R/Hand_R";
+        ///"Root/Hips/Spine_01/Spine_02/Spine_03/Clavicle_R/Shoulder_R/Elbow_R/Hand_R"
         Transform bone = transform.Find(newWeapon.GetParentBone());
-        if (bone == null) Debug.Log("Tried to equip weapon, couldn't find bone!");
-
+        if (bone == null) Debug.Log("Couldn't find bone to attach weapon to. THIS IS A BUG.");
         Destroy(WeaponModel);
+        
         AttackDamage = newWeapon.Damage;
         AttackRange = newWeapon.Range;
         AttackType = newWeapon.DamageType;
-        WeaponModel = Instantiate(newWeapon.model);
-
+       
+        WeaponModel = Instantiate(newWeapon.gameObject);
         WeaponModel.transform.position = bone.position;
         WeaponModel.transform.SetParent(bone);
         WeaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
@@ -224,21 +224,10 @@ public class Combatant : MonoBehaviour
     }
 
     public void SetArmor(ItemArmor newArmor) {
-        Transform bone = transform.Find(newArmor.GetParentBone());
-        if (bone == null) Debug.Log("Tried to equip armor, couldn't find bone!");
-
-        Destroy(ArmorModel);
+        // NO MODEL RIGHT NOW
         Armor = newArmor.Armor;
         Weave = newArmor.Weave;
-        ArmorModel = Instantiate(newArmor.model);
-
-        // TODO FIX THIS DUPLICATE CODE
-        ArmorModel.transform.position = bone.position;
-        ArmorModel.transform.Rotate(newArmor.rotation); // TODO make this relative and not absolute
-        ArmorModel.transform.Translate(newArmor.offset); // TODO make this relative and not absolute
-        ArmorModel.transform.SetParent(bone);
     }
-
 
     public bool IsTargetInCover(Vector3 pos) {
         Vector3 adj = new Vector3(0, 1, 0); // since the linecast is at feet? ensure it'll hit higher hitbox for cover

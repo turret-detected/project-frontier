@@ -107,4 +107,7 @@ public class UIManager : MonoBehaviour
         Dropdown dropdown = placementMenuPanel.GetComponentInChildren<Dropdown>();
         return dropdown.options.Count == 0;
     }
+
+    /// https://www.youtube.com/watch?v=8yzpjkoE0YA
+    /// Good video
 }

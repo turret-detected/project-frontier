@@ -20,7 +20,7 @@ public class CameraMovement : MonoBehaviour
     {
         cam = Camera.main;
         scale = 3.0f;
-        rotation_scale = 10.0f; 
+        rotation_scale = 50.0f; 
 
         startingPos = transform.position;
         startingAngle = transform.rotation;
@@ -67,8 +67,7 @@ public class CameraMovement : MonoBehaviour
         if(Input.GetMouseButton(2)) // Middle mouse
         {
             // Move camera based on mouse movement
-            transform.Translate(new Vector3(Input.GetAxis("Mouse X")*-1, 0, 0) * Time.deltaTime * rotation_scale);
-            // WHAT IS ROTATE AROUND
+            transform.RotateAround(target.position, Vector3.up, Input.GetAxis("Mouse X") * Time.deltaTime * rotation_scale);
 
             // Align control cube with camera
             target.LookAt(transform);
