@@ -16,6 +16,8 @@ public class MovementAI : MonoBehaviour
     private Vector3 destination;
     private bool wasMoving = false;
     private bool needToUpdate = false;
+    private bool turning = false;
+    private Vector3 turnTarget = new Vector3(0, 0, 0);
 
     // Start is called before the first frame update
     void Start()
@@ -27,8 +29,11 @@ public class MovementAI : MonoBehaviour
     }
 
     public void MoveToSpace(int x, int z) {
-        destination = new Vector3(x, 0, z);
-        seeker.StartPath(transform.position, destination, OnPathComplete);
+        gameObject.layer = 0; // so it doesn't freak out about being an obstacle itself
+        StartCoroutine(updateGraphLocalThenMove(x, z));
+
+        //destination = new Vector3(x, 0, z);
+        //seeker.StartPath(transform.position, destination, OnPathComplete);
     }
 
     public void OnPathComplete(Path p) {
@@ -52,9 +57,24 @@ public class MovementAI : MonoBehaviour
        // Not really necessary right now
     }
 
+    IEnumerator updateGraphLocalThenMove(int x, int z) { 
+        turning = true;
+        turnTarget = new Vector3(x, 1, z); 
+        AstarPath.active.UpdateGraphs(GetComponentInParent<CharacterController>().bounds);
+
+        yield return new WaitForSeconds(1);
+        turning = false;
+        destination = new Vector3(x, 0, z);
+        seeker.StartPath(transform.position, destination, OnPathComplete);
+    }
+
     // Update is called once per frame
     void Update()
     {
+        if(turning) {
+            turnTowardTarget(turnTarget);
+        }
+
         if (IsMoving()) {
             wasMoving = true;
         }
@@ -66,6 +86,7 @@ public class MovementAI : MonoBehaviour
 
         if (needToUpdate) {
             needToUpdate = false;
+            gameObject.layer = 8; // back to obstacle
             Debug.Log("Requested graph update!");
             StartCoroutine(updateGraph());
         }
