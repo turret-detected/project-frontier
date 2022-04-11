@@ -133,9 +133,13 @@ public class Combatant : MonoBehaviour
         attacking = true;
         yield return new WaitForSeconds(1);
         attacking = false;
+        anim.SetTrigger("Attack");
+
+        /*
         anim.SetBool("Attacking", true);
         yield return new WaitForSeconds(1);
         anim.SetBool("Attacking", false);
+        */
     }
 
     public bool Move(int x, int z) {

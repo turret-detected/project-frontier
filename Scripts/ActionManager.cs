@@ -21,7 +21,6 @@ public class ActionManager : MonoBehaviour
     public GameObject UIContainer;
     private UIManager ui;
     private GameObject selectedSelectable;
-    //private bool isMoving;
     private bool showingEscPanel = false;
     private int ignoreActionLayer = 1 << 20;
     private ActionState actionState;
@@ -38,9 +37,7 @@ public class ActionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (selectedSelectable != null) {
-            //isMoving = selectedSelectable.GetComponent<MovementAI>().IsMoving();
-        } else {
+        if (selectedSelectable == null) {
             if (Input.GetButtonDown("Cancel")) {
                 ui.toggleEscPanel(!showingEscPanel);
                 showingEscPanel = !showingEscPanel;
@@ -72,11 +69,10 @@ public class ActionManager : MonoBehaviour
                     UnitData unit = gm.GetUnitDataFromName(temp);
                     gm.SpawnUnitFromDataAtPos(unit, pos);
                     ui.placedUnit(temp);
-                    
-                    // destroy parent to remove smoke
-                    Destroy(hit.transform.parent.gameObject);
-                    // but not this way, because the smoke stops instantly, it should fade out
-                    // instead: disable hitbox, and turn off emitter
+
+                    GameObject spawnPointParent = hit.transform.parent.gameObject;
+                    Destroy(hit.transform.gameObject); // gets rid of collider
+                    spawnPointParent.GetComponentInChildren<ParticleSystem>().Stop(); // turn off smoke
                 }
 
                 // SELECT A UNIT
@@ -94,7 +90,7 @@ public class ActionManager : MonoBehaviour
                     int x = (int)Mathf.Round(hit.point.x);
                     int z = (int)Mathf.Round(hit.point.z);
                     selectedSelectable.GetComponent<Combatant>().Move(x, z);
-                    // TODO set moving and edit movement script to say when its done!
+                    // TODO block other orders while unit is moving
                 }
 
                 // ATTACK A UNIT
@@ -102,7 +98,7 @@ public class ActionManager : MonoBehaviour
                     if (hit.transform.gameObject.GetComponent<Combatant>().UnitFaction == Faction.COMPUTER) {
                         selectedSelectable.GetComponent<Combatant>().Attack(hit.transform.gameObject.GetComponent<Combatant>());
                     }
-                    // TODO fix this so it tries to get component, bc it causes script error
+                    // TODO fix this so it does TryGetComponent, bc it causes script error
                 }
 
                 // SPECIAL ABILITY

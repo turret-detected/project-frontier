@@ -125,16 +125,9 @@ public class MovementAI : MonoBehaviour
 
         }
 
-
         
-        // If not attacking, set anim to move while moving
-        if (!anim.GetBool("Attacking")) {
-            moving = controller.velocity.magnitude > 0.2;
-            //Debug.Log(controller.velocity);
-            anim.SetBool("IsMoving", moving);
-            //if (isMoving) Debug.Log(isMoving);
-        }
-        
+        moving = controller.velocity.magnitude > 0.2;
+        anim.SetBool("IsMoving", moving);
 
 
         if(turning) {

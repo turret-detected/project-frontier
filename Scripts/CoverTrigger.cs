@@ -19,12 +19,18 @@ public class CoverTrigger : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider other) {
-        CoverHitbox.SetActive(true);
-        other.GetComponentInChildren<Combatant>().SetSelfInCover(true);
+        Combatant c = other.GetComponentInChildren<Combatant>();
+        if (c != null) {
+            CoverHitbox.SetActive(true);
+            c.SetSelfInCover(true);
+        }
     }
 
     private void OnTriggerExit(Collider other) {
-        CoverHitbox.SetActive(false);
-        other.GetComponentInChildren<Combatant>().SetSelfInCover(false);
+        Combatant c = other.GetComponentInChildren<Combatant>();
+        if (c != null) {
+            CoverHitbox.SetActive(false);
+            c.SetSelfInCover(false);
+        }
     }
 }
