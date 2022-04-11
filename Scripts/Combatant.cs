@@ -4,6 +4,14 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
+public enum UnitStates { //currently unused
+    IDLE,
+    MOVING,
+    ATTACKING,
+    SPECIAL_ACTION,
+    BLEED_OUT
+}
+
 
 public class Combatant : MonoBehaviour
 {
@@ -26,7 +34,6 @@ public class Combatant : MonoBehaviour
     // ARMOR
     public string ArmorName;
     private GameObject ArmorItem;
-    private GameObject ArmorModel;
     public int Armor;
     public int Weave;
     
@@ -37,6 +44,10 @@ public class Combatant : MonoBehaviour
     public int AttackDamage;
     public int AttackRange;
     public DamageType AttackType;
+
+    // BAUBLE
+    public string BaubleName;
+    public GameObject BaubleItem;
     
     // CONSTS
     private float damageReductionMod;
@@ -64,6 +75,7 @@ public class Combatant : MonoBehaviour
         RemainingAttacks = u.RemainingAttacks;
         ArmorName = u.ArmorPrefabName;
         WeaponName = u.WeaponPrefabName;
+        BaubleName = u.BaublePrefabName;
         PrefabName = u.UnitPrefabName;
     }
 
@@ -86,11 +98,21 @@ public class Combatant : MonoBehaviour
         damageReductionMod = gm.GetDamageReductionMod();
              
         anim = GetComponent<Animator>();
+
         WeaponItem = Resources.Load<GameObject>("Weapons/"+WeaponName);
-        SetWeapon(WeaponItem);
-        //Debug.Log(ArmorName);
+        if (WeaponItem != null) {
+            EquipItem(WeaponItem);
+        }
+
         ArmorItem = Resources.Load<GameObject>("Armor/"+ArmorName);
-        SetArmor(ArmorItem);
+        if (ArmorItem != null) {
+            EquipItem(ArmorItem);
+        }
+
+        BaubleItem = Resources.Load<GameObject>("Baubles/"+BaubleName);
+        if (BaubleItem != null) {
+            EquipItem(BaubleItem);
+        }
 
         movementScript = GetComponent<MovementAI>();
 
@@ -197,19 +219,67 @@ public class Combatant : MonoBehaviour
         RemainingMoves = MaxMoves;
     }
 
-    public void SetWeapon(GameObject newWeapon) {
-        SetWeapon(newWeapon.GetComponent<ItemWeapon>());
+    public void EquipItem(GameObject itemObj) {
+        IItem item = itemObj.GetComponent<IItem>();
+        
+        // Unequip existing item them change assignments
+        if (item is ItemWeapon) {
+            if (WeaponItem != null) {
+                UnequipItem(WeaponItem.GetComponent<IItem>());
+            }
+            WeaponName = item.GetItemPrefabString();
+            WeaponItem = itemObj;
+            SetWeapon((ItemWeapon) item); // setup weapon model
+        }
+    
+        if (item is ItemBauble) {
+            if (BaubleItem != null) {
+                UnequipItem(BaubleItem.GetComponent<IItem>());
+            }
+
+            BaubleName = item.GetItemPrefabString();
+            BaubleItem = itemObj;       
+        }
+
+        if (item is ItemArmor) {
+            if (ArmorItem != null) {
+                UnequipItem(ArmorItem.GetComponent<IItem>());
+            }
+            ArmorName = item.GetItemPrefabString();
+            ArmorItem = itemObj;
+        }
+
+        //stat adj
+        item.OnEquip(this);
+
+    }
+
+    public void UnequipItem(IItem item) {
+        item.OnUnequip(this);
+        if (item is ItemWeapon) {
+            WeaponItem = null;
+            WeaponName = null;
+            Destroy(WeaponModel);
+        }
+        if (item is ItemBauble) {
+            BaubleItem = null;
+            BaubleName = null;
+        }
+        if (item is ItemArmor) {
+            ArmorItem = null;
+            ArmorName = null;
+        }
     }
 
     public void SetWeapon(ItemWeapon newWeapon) {
         ///"Root/Hips/Spine_01/Spine_02/Spine_03/Clavicle_R/Shoulder_R/Elbow_R/Hand_R"
         Transform bone = transform.Find(newWeapon.GetParentBone());
-        if (bone == null) Debug.Log("Couldn't find bone to attach weapon to. THIS IS A BUG.");
+        if (bone == null) Debug.Log(newWeapon.GetItemName()+" couldn't find bone to attach weapon to. THIS IS A BUG.");
         Destroy(WeaponModel);
         
-        AttackDamage = newWeapon.Damage;
-        AttackRange = newWeapon.Range;
-        AttackType = newWeapon.DamageType;
+        //AttackDamage = newWeapon.Damage;
+        //AttackRange = newWeapon.Range;
+        //AttackType = newWeapon.DamageType;
        
         WeaponModel = Instantiate(newWeapon.gameObject);
         WeaponModel.transform.position = bone.position;
@@ -217,16 +287,6 @@ public class Combatant : MonoBehaviour
         WeaponModel.transform.Translate(newWeapon.offset); // TODO make this relative and not absolute
         WeaponModel.transform.Rotate(newWeapon.rotation); // TODO make this relative and not absolute
         
-    }
-
-    public void SetArmor(GameObject newArmor) {
-        SetArmor(newArmor.GetComponent<ItemArmor>());
-    }
-
-    public void SetArmor(ItemArmor newArmor) {
-        // NO MODEL RIGHT NOW
-        Armor = newArmor.Armor;
-        Weave = newArmor.Weave;
     }
 
     public bool IsTargetInCover(Vector3 pos) {

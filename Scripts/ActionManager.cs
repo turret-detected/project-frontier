@@ -21,7 +21,7 @@ public class ActionManager : MonoBehaviour
     public GameObject UIContainer;
     private UIManager ui;
     private GameObject selectedSelectable;
-    private bool isMoving;
+    //private bool isMoving;
     private bool showingEscPanel = false;
     private int ignoreActionLayer = 1 << 20;
     private ActionState actionState;
@@ -30,7 +30,7 @@ public class ActionManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        isMoving = false;
+        //isMoving = false;
         gm = GameObject.Find("GameMaster").GetComponent<Gamemaster>();
         ui = UIContainer.GetComponent<UIManager>();
     }
@@ -39,7 +39,7 @@ public class ActionManager : MonoBehaviour
     void Update()
     {
         if (selectedSelectable != null) {
-            isMoving = selectedSelectable.GetComponent<MovementAI>().IsMoving();
+            //isMoving = selectedSelectable.GetComponent<MovementAI>().IsMoving();
         } else {
             if (Input.GetButtonDown("Cancel")) {
                 ui.toggleEscPanel(!showingEscPanel);

@@ -49,8 +49,8 @@ public class Gamemaster : MonoBehaviour
     private State gameState;
     private int PlayerUnitCount = 0;
     private int AIUnitCount = 0;
-    private int AIMovesRemaining;
     private bool AIGaveMoves;
+    private EnemyAI activeAI;
     public GameObject UIContainer;
     private UIManager ui;
     private List<UnitData> unitlist;
@@ -67,7 +67,12 @@ public class Gamemaster : MonoBehaviour
     void Update()
     {
         // Game over
-        if (gameState == State.VICTORY || gameState == State.DEFEAT) return;
+        if (gameState == State.DEFEAT) return;
+
+        // Victory!
+        if (gameState == State.VICTORY) {
+            ui.toggleLootPanel(true);
+        }
 
         // Placement is done, start the game!
         if (gameState == State.SETUP && ui.isPlacementListEmpty()) {
@@ -93,26 +98,38 @@ public class Gamemaster : MonoBehaviour
         if (gameState == State.AI_MOVE) {
             // iterate through AI and make them move
             if (!AIGaveMoves) {
-                AIMovesRemaining = 0;
                 AIGaveMoves = true;
-                foreach (Combatant c in combatants) {
-                    if (c.UnitFaction == Faction.COMPUTER) {
-                        c.GetComponentInParent<EnemyAI>().gmMove();
-                        AIMovesRemaining++;
-                    }
-                }
-            }
-
-            // wait for 0 count on AIMovesRemaining
-            if (AIMovesRemaining == 0) {
-                AIMovesRemaining = -1;
-                endAITurn();
-            }    
+                StartCoroutine(AITurn());
+            }   
         }
 
         if (gameState == State.PLAYER_MOVE) {
             // exist
         }
+    }
+
+    IEnumerator AITurn() {
+        List<EnemyAI> aiList = new List<EnemyAI>();
+
+        foreach (Combatant c in combatants) {
+            if (c.UnitFaction == Faction.COMPUTER) {
+                aiList.Add(c.GetComponentInParent<EnemyAI>());
+            }
+        }
+
+        while (aiList.Count > 0) {
+            aiList[0].gmMove();
+            while (activeAI != aiList[0]) {
+                yield return new WaitForSeconds(1); 
+            }
+            aiList.Remove(activeAI);
+        }
+        yield return new WaitForSeconds(1); 
+        endAITurn();
+    }
+
+    public void AITurnComplete(EnemyAI ai) {
+        activeAI = ai;
     }
 
     public void endPlayerTurn() {
@@ -129,6 +146,7 @@ public class Gamemaster : MonoBehaviour
         ui.setTurnIndicator(Faction.PLAYER);
         gameState = State.PLAYER_MOVE;
         AIGaveMoves = false;
+        activeAI = null;
         ResetActions(Faction.COMPUTER);
     }
 
@@ -216,10 +234,7 @@ public class Gamemaster : MonoBehaviour
         return target;
     } 
 
-    public void AIFinishedAction() {
-        AIMovesRemaining--;
-        Debug.Log("AI Finished a turn. " + AIMovesRemaining + " moves left.");
-    }
+    
 
     public void ResetActions(Faction faction) {
         foreach (Combatant c in combatants) {

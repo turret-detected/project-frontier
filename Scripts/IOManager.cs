@@ -56,7 +56,7 @@ public class IOManager : MonoBehaviour
                         
                 // Read XML and convert
                 List<UnitData> unitlist = (List<UnitData>)bf.ReadObject(reader, true);
-                Debug.Log("Test : "+unitlist[0].CurrentHealth);
+                //Debug.Log("Test : "+unitlist[0].CurrentHealth);
                 reader.Close();
                 file.Close();
 

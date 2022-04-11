@@ -36,15 +36,12 @@ public class UnitData
     
     [DataMember]
     public string ArmorPrefabName;
-
-    [DataMember]
-    public int Weave;
-
-    [DataMember]
-    public int Armor;
     
     [DataMember]
     public string WeaponPrefabName;
+
+    [DataMember]
+    public string BaublePrefabName;
     
     [DataMember]
     public string UnitPrefabName;
@@ -68,10 +65,9 @@ public class UnitData
         RemainingMoves = combatant.RemainingMoves;
         MaxAttacks = combatant.MaxAttacks;
         RemainingAttacks = combatant.RemainingAttacks;
-        Armor = combatant.Armor;
-        Weave = combatant.Weave;
         ArmorPrefabName = combatant.ArmorName;
         WeaponPrefabName = combatant.WeaponName;
+        BaublePrefabName = combatant.BaubleName;
         UnitPrefabName = combatant.PrefabName;
         Position = combatant.transform.position;
         Rotation = combatant.transform.rotation;
@@ -82,15 +78,14 @@ public class UnitData
     public UnitData(string Name, UnitClass c) {
         UnitName = Name;
         UnitClass = c;
-        MaxHealth = 100;
-        CurrentHealth = 100;
+        MaxHealth = 10 * UnityEngine.Random.Range(8, 11); // 8 to 10 -> 80, 90, or 100
+        CurrentHealth = MaxHealth;
         UnitFaction = Faction.PLAYER;
-        MaxMoves = 6;
-        RemainingMoves = 6;
+        MaxMoves = UnityEngine.Random.Range(5, 8); // 5 to 7;
+        RemainingMoves = MaxMoves;
         MaxAttacks = 1;
         RemainingAttacks = 1;
-        Armor = 0;
-        Weave = 0;
+        BaublePrefabName = null;
         ArmorPrefabName = GetClassArmorPrefab(c);
         WeaponPrefabName = GetClassWeaponPrefab(c);
         UnitPrefabName = GetClassPrefab(c);
@@ -98,8 +93,6 @@ public class UnitData
         Rotation = new Quaternion();
         UnitDisplayName = UnitName + " (" + StringEnums.GetUnitClassString(UnitClass) + ")";
         Debug.Log(UnitDisplayName);
-
-        /// GENERATE STATS HERE
     }
 
 
@@ -129,7 +122,7 @@ public class UnitData
         }
 
         if (c == UnitClass.CLERIC) {
-            return "Longsword";
+            return "Broadsword";
         }
 
         if (c == UnitClass.MAGE) {
@@ -137,7 +130,7 @@ public class UnitData
         }
 
         if (c == UnitClass.SCOUT) {
-            return "Longsword";
+            return "Rifle";
         }
         throw new ArgumentException("Invalid class");
     }

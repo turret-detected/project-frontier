@@ -74,22 +74,28 @@ public class EnemyAI : MonoBehaviour
             //While I have moves
             if (fullDistanceTraveled < combatant.MaxMoves) {
                 // test range
-                if (Vector3.Distance(transform.position, targetPos) <= combatant.AttackRange) {
+                if (Vector3.Distance(transform.position, targetPos) <= combatant.AttackRange + 0.55f) {
                     // In range, attack!
-                    mover.MoveToSpace((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
+                    mover.AlterPath((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
                     moving = false;
                     Debug.Log("AI Attack!");
-                    combatant.Attack(target.GetComponent<Combatant>());
-                    gm.AIFinishedAction();
-                    // End turn
+                    StartCoroutine(doAttack());
+                    
                 }
             } else {
                 Debug.Log("Couldn't get close enough to attack target");
-                mover.MoveToSpace((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
+                mover.AlterPath((int) Mathf.Round(transform.position.x), (int) Mathf.Round(transform.position.z));
                 moving = false;
-                gm.AIFinishedAction();
+                gm.AITurnComplete(this);
                 // End turn
             }
         }
+    }
+
+    IEnumerator doAttack() {
+        yield return new WaitForSeconds(1); //Wait until movement stops hopefully
+        combatant.Attack(target.GetComponent<Combatant>());
+        gm.AITurnComplete(this);
+        // End turn
     }
 }

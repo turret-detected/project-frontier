@@ -14,10 +14,25 @@ public class MovementAI : MonoBehaviour
     private int currentWaypoint = 0;
     public bool reachedEndOfPath;
     private Vector3 destination;
+    /*
+    private bool isMoving = false;
     private bool wasMoving = false;
     private bool needToUpdate = false;
+    
+    private bool stopMoving = false;
+    */
+
+
+    // Pre move turn
     private bool turning = false;
     private Vector3 turnTarget = new Vector3(0, 0, 0);
+
+    // Moving animation condition
+    private bool moving;
+
+    // Update graph when stopping movement
+    private bool wasMoving;
+
 
     // Start is called before the first frame update
     void Start()
@@ -31,9 +46,11 @@ public class MovementAI : MonoBehaviour
     public void MoveToSpace(int x, int z) {
         gameObject.layer = 0; // so it doesn't freak out about being an obstacle itself
         StartCoroutine(updateGraphLocalThenMove(x, z));
+    }
 
-        //destination = new Vector3(x, 0, z);
-        //seeker.StartPath(transform.position, destination, OnPathComplete);
+    public void AlterPath(int x, int z) { // ONLY USE TO CHANGE THE PATH OF AN ALREADY MOVING CHARACTER
+        destination = new Vector3(x, 0, z);
+        seeker.StartPath(transform.position, destination, OnPathComplete);
     }
 
     public void OnPathComplete(Path p) {
@@ -44,22 +61,16 @@ public class MovementAI : MonoBehaviour
         }
     }
 
-    public bool IsMoving() {
-        return !reachedEndOfPath;
-    }
-
     IEnumerator updateGraph() {
         yield return new WaitForSeconds(1);
-        AstarPath.active.Scan();
-       // AstarPath.active.UpdateGraphs(GetComponentInParent<CharacterController>().bounds);
-       // Above doesn't clean up previous position
-       // Optimization: store bounds before and after move and update both instead of updating the whole graph
-       // Not really necessary right now
+        //AstarPath.active.Scan(); 
+        // since we now remove our presence before moving, just update where we moved to
+        AstarPath.active.UpdateGraphs(GetComponentInParent<CharacterController>().bounds);
     }
 
     IEnumerator updateGraphLocalThenMove(int x, int z) { 
-        turning = true;
         turnTarget = new Vector3(x, 1, z); 
+        turning = true;
         AstarPath.active.UpdateGraphs(GetComponentInParent<CharacterController>().bounds);
 
         yield return new WaitForSeconds(1);
@@ -71,29 +82,6 @@ public class MovementAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(turning) {
-            turnTowardTarget(turnTarget);
-        }
-
-        if (IsMoving()) {
-            wasMoving = true;
-        }
-
-        if (wasMoving && IsMoving() == false) {
-            wasMoving = false;
-            needToUpdate = true;
-        }
-
-        if (needToUpdate) {
-            needToUpdate = false;
-            gameObject.layer = 8; // back to obstacle
-            Debug.Log("Requested graph update!");
-            StartCoroutine(updateGraph());
-        }
-
-
-        anim.SetBool("IsMoving", IsMoving());
-
         // AI pathing
         if (path != null) { // Move when given a path
 
@@ -116,6 +104,7 @@ public class MovementAI : MonoBehaviour
 
             // Slow down at the end of path
             var speedFactor = reachedEndOfPath ? Mathf.Sqrt(distanceToWaypoint/nextWaypointDistance) : 1f;
+            // TODO this speed factor might need to be applied to movement animation as well
 
             // Get direction
             Vector3 dir = (path.vectorPath[currentWaypoint] - transform.position).normalized;
@@ -124,7 +113,7 @@ public class MovementAI : MonoBehaviour
             Debug.DrawLine(transform.position, path.vectorPath[currentWaypoint], Color.white, 5);
 
             // Face direction
-            if (IsMoving()) {
+            if (moving && Vector3.Distance(transform.position, path.vectorPath[currentWaypoint]) > 0.7) {
                 turnTowardTarget(path.vectorPath[currentWaypoint]);
             }
 
@@ -134,6 +123,34 @@ public class MovementAI : MonoBehaviour
             // Move using char controller
             controller.Move(velocity * Time.deltaTime);
 
+        }
+
+
+        
+        // If not attacking, set anim to move while moving
+        if (!anim.GetBool("Attacking")) {
+            moving = controller.velocity.magnitude > 0.2;
+            //Debug.Log(controller.velocity);
+            anim.SetBool("IsMoving", moving);
+            //if (isMoving) Debug.Log(isMoving);
+        }
+        
+
+
+        if(turning) {
+            turnTowardTarget(turnTarget);
+        }
+
+        
+        if (moving) {
+            wasMoving = true;
+        }
+
+        if (wasMoving && !moving) {
+            wasMoving = false;
+            gameObject.layer = 8; // back to obstacle
+            Debug.Log("Requested graph update!");
+            StartCoroutine(updateGraph());
         }
     }
 
