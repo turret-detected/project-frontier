@@ -28,15 +28,42 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         if (selectedUnit != null) { 
+            // Cover
+            string cover;
+            if (!selectedUnit.InCover) {
+                cover = "Not in cover";
+            } else {
+                cover = "In cover";
+            }
+
+            // Shorten dmg type
+            string dmg_type;
+            if (selectedUnit.AttackType == DamageType.PHYSICAL) {
+                dmg_type = "Phys";
+            } else if (selectedUnit.AttackType == DamageType.MAGICAL) {
+                dmg_type = "Magic";
+            } else {
+                dmg_type = "BAD DMG TYPE";
+            }
+
             unitSelectionPanel.gameObject.SetActive(true);
             unitName.text = selectedUnit.UnitName;
             unitDesc.text = 
+            selectedUnit.CurrentHealth + "/" + selectedUnit.MaxHealth + " Health\n" +
+            selectedUnit.ArmorName + ": " + selectedUnit.Armor + " Armor | " + selectedUnit.Weave + " Weave\n" + 
+            selectedUnit.WeaponName + ": " + selectedUnit.AttackDamage + " " + dmg_type + " Damage\n" +
+            selectedUnit.RemainingMoves + "/" + selectedUnit.MaxMoves + " Moves | " + selectedUnit.RemainingAttacks + "/" + selectedUnit.MaxAttacks + " Attacks\n" +
+            "Range: " + selectedUnit.AttackRange + " | " + cover + "\n";
+
+
+            /*
             "Health: " + selectedUnit.CurrentHealth + 
             "\nArmor: " + selectedUnit.Armor +
             "\nWeave: " + selectedUnit.Weave +
             "\nAttack: " + selectedUnit.AttackDamage + " " + selectedUnit.AttackType +
             "\nRange: " + selectedUnit.AttackRange +
             "\nCover: " + selectedUnit.InCover;
+            */
         } else {     
             unitSelectionPanel.gameObject.SetActive(false);
         }

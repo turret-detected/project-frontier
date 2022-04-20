@@ -10,6 +10,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Text;
 using System;
+using UnityEngine.SceneManagement;
 
 [System.Serializable]
 public enum DamageType {
@@ -42,10 +43,20 @@ public enum UnitClass {
     CLERIC
 }
 
+[System.Serializable]
+public enum UnitStates { //currently unused
+    IDLE,
+    MOVING,
+    ATTACKING,
+    SPECIAL_ACTION,
+    BLEED_OUT
+}
+
 public class Gamemaster : MonoBehaviour
 {
     List<Combatant> combatants = new List<Combatant>();
-    public const float damageReductionMod = 0.975f; 
+    public const float damageReductionMod = 0.975f;
+    public string nextLevel; 
     private State gameState;
     private int PlayerUnitCount = 0;
     private int AIUnitCount = 0;
@@ -54,6 +65,7 @@ public class Gamemaster : MonoBehaviour
     public GameObject UIContainer;
     private UIManager ui;
     private List<UnitData> unitlist;
+    private bool TransitionToNextLevel = false;
 
     // Start is called before the first frame update
     void Start()
@@ -66,11 +78,18 @@ public class Gamemaster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Next Level
+        if (TransitionToNextLevel) {
+            saveGame();
+            SceneManager.LoadScene(nextLevel, LoadSceneMode.Single);
+        }
+
         // Game over
         if (gameState == State.DEFEAT) return;
 
         // Victory!
         if (gameState == State.VICTORY) {
+            gameState = State.WAITING;
             ui.toggleLootPanel(true);
         }
 
@@ -137,6 +156,7 @@ public class Gamemaster : MonoBehaviour
             gameState = State.AI_MOVE;
             ui.setTurnIndicator(Faction.COMPUTER);
             ResetActions(Faction.PLAYER);
+            
         } else {
             Debug.Log("Can't end turn, not your turn!");        
         }
@@ -240,6 +260,13 @@ public class Gamemaster : MonoBehaviour
         foreach (Combatant c in combatants) {
             if (c.UnitFaction == faction) {
                 c.ResetActions();
+               
+                // increment ability cooldowns
+                IAbility ability;
+                c.TryGetComponent<IAbility>(out ability);
+                if (ability != null) {
+                    ability.IncrementCooldown();
+                }
             }
 
         }
@@ -286,9 +313,23 @@ public class Gamemaster : MonoBehaviour
     
     }
 
+    public List<Combatant> GetPlayerCombatants() {
+        List<Combatant> ls = new List<Combatant>();
+        foreach (Combatant c in combatants) {
+            if (c.UnitFaction == Faction.PLAYER) {
+                ls.Add(c);
+            }
+        }
+        return ls;
+    }
+
+    public void GiveCombatantItem(GameObject itemObj, Combatant c) {
+        c.EquipItem(itemObj);
+    }
+
     public void saveGame() {
-        // only if player's turn
-        if (gameState == State.PLAYER_MOVE) {
+        // only if player's turn or ending level
+        if (gameState == State.PLAYER_MOVE || TransitionToNextLevel == true) {
             List<UnitData> unitlist = new List<UnitData>();
 
             foreach (Combatant c in combatants) {
@@ -328,5 +369,13 @@ public class Gamemaster : MonoBehaviour
         //exit
         Debug.Log("Received Exit Command");
         Application.Quit();
+    }
+
+    public void endGame() {
+        gameState = State.VICTORY;
+    }
+
+    public void doneLooting() {
+        TransitionToNextLevel = true;
     }
 }

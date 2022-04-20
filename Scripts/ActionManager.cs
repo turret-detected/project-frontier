@@ -37,6 +37,11 @@ public class ActionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (Input.GetButtonDown("Cheat Key")) {
+            gm.endGame();
+        }
+
         if (selectedSelectable == null) {
             if (Input.GetButtonDown("Cancel")) {
                 ui.toggleEscPanel(!showingEscPanel);
@@ -59,7 +64,7 @@ public class ActionManager : MonoBehaviour
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(ray.origin, ray.direction * 100);
         if (Physics.Raycast(ray, out hit, 1000f, ~ignoreActionLayer)) {
-            if (Input.GetButtonDown("Select") && !EventSystem.current.IsPointerOverGameObject()) {
+            if (Input.GetButtonDown("Select") && !EventSystem.current.IsPointerOverGameObject()) { // UI blocks raycast
                 
                 
                 // PLACEMENT
@@ -85,32 +90,51 @@ public class ActionManager : MonoBehaviour
                     ui.setSelectedUnit(selectedSelectable.GetComponent<Combatant>());
                 }
 
+                Combatant selected;
+                if (selectedSelectable != null) {
+                    selected = selectedSelectable.GetComponent<Combatant>();
+                } else {
+                    selected = null;
+                }
+
                 // MOVE A UNIT
                 if (selectedSelectable != null && actionState == ActionState.MOVE && hit.transform.gameObject.tag == "Terrain") {
                     int x = (int)Mathf.Round(hit.point.x);
                     int z = (int)Mathf.Round(hit.point.z);
-                    selectedSelectable.GetComponent<Combatant>().Move(x, z);
+                    selected.Move(x, z);
                     // TODO block other orders while unit is moving
                 }
 
-                // ATTACK A UNIT
-                if (selectedSelectable != null && actionState == ActionState.ATTACK) {
-                    if (hit.transform.gameObject.GetComponent<Combatant>().UnitFaction == Faction.COMPUTER) {
-                        selectedSelectable.GetComponent<Combatant>().Attack(hit.transform.gameObject.GetComponent<Combatant>());
+                // TARGETED ACTIONS
+                Combatant target;
+                hit.transform.gameObject.TryGetComponent<Combatant>(out target);
+                if (target != null) {
+
+                    // ATTACK A UNIT
+                    if (selected != null && actionState == ActionState.ATTACK) {
+                        if (target.UnitFaction == Faction.COMPUTER) {
+                            selected.Attack(target);
+                        }
+                        // TODO fix this so it does TryGetComponent, bc it causes script error
                     }
-                    // TODO fix this so it does TryGetComponent, bc it causes script error
+
+                    // SPECIAL ABILITY
+                    if (selected != null && actionState == ActionState.SPECIAL_ABILITY) {
+                        if (selectedSelectable.GetComponent<IAbility>().isValidTarget(selected, target)) {
+                            selectedSelectable.GetComponent<IAbility>().performAbility(selected, target);
+                        } else {
+                            Debug.Log("Invalid target or on cooldown!");
+                        }
+                    }
                 }
 
-                // SPECIAL ABILITY
-                if (selectedSelectable != null && actionState == ActionState.SPECIAL_ABILITY) {
-                    // TODO
-                    // is ability friendly or hostile?
-                    // is the hit target the correct type?
-                    // do the ability
-                }
 
 
             }
+        }
+
+        if (gm.GetCurrentState() == State.AI_MOVE && actionState != ActionState.NONE) {
+            Revert();
         }            
     }
 

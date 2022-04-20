@@ -4,13 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public enum UnitStates { //currently unused
-    IDLE,
-    MOVING,
-    ATTACKING,
-    SPECIAL_ACTION,
-    BLEED_OUT
-}
 
 
 public class Combatant : MonoBehaviour
@@ -18,19 +11,29 @@ public class Combatant : MonoBehaviour
     // GM
     private Gamemaster gm;
 
+    // FX
+    [Header("FX")]
+    public GameObject HealFX;
+
     // NAME, HEALTH, FACTION, MOVES
+    [Header("Name & Faction")]
     public string UnitName;
     public UnitClass UnitClass;
     public string PrefabName;
+    
+    [Header("Health & Moves")]
+    private int LastHealth;
     public int CurrentHealth;
     public int MaxHealth;
     public Faction UnitFaction;
     public int MaxMoves = 6;
     public int RemainingMoves;
+    private Vector3 lastPos;
     public int MaxAttacks = 1;
     public int RemainingAttacks;
     public bool InCover = false;
     
+    [Header("Equipment")]
     // ARMOR
     public string ArmorName;
     private GameObject ArmorItem;
@@ -62,6 +65,7 @@ public class Combatant : MonoBehaviour
     private Combatant enemy;
 
 
+
     // LOAD AND SAVE
     public void SetUnitData(UnitData u) {
         UnitClass = u.UnitClass;
@@ -87,6 +91,8 @@ public class Combatant : MonoBehaviour
     // Start is called before the first frame update
     public void Start()
     {
+        lastPos = transform.position;
+        LastHealth = MaxHealth;
         CurrentHealth = MaxHealth;
         RemainingAttacks = MaxAttacks;
         RemainingMoves = MaxMoves;
@@ -124,8 +130,19 @@ public class Combatant : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (CurrentHealth > LastHealth) {
+            OnHeal();
+        }
+        LastHealth = CurrentHealth;
+
+
         if (attacking) {
             movementScript.turnTowardTarget(enemy.transform);
+        }
+
+        if (Vector3.Distance(lastPos, transform.position) > 0.96f) {
+            lastPos = transform.position;
+            RemainingMoves--;
         }
     }
 
@@ -144,13 +161,15 @@ public class Combatant : MonoBehaviour
 
     public bool Move(int x, int z) {
         // TODO
-        // ASK GM IF THERE'S A UNIT THERE
-        // IF NOT
         // SEE IF I HAVE THE MOVES TO GET THERE (HOW CALC???)
         // IF YES, DO THE MOVE
-        movementScript.MoveToSpace(x, z);
-
-        return false;
+        if (Vector3.Distance(this.transform.position, new Vector3(x, 0, z)) < RemainingMoves + 0.5f) {
+            lastPos = transform.position;
+            movementScript.MoveToSpace(x, z);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void Attack(Combatant opponent) {
@@ -303,6 +322,15 @@ public class Combatant : MonoBehaviour
 
     public void SetSelfInCover(bool b) {
         InCover = b;
+    }
+
+    public Animator GetAnimator() {
+        return anim;
+    }
+
+    public void OnHeal() {
+        // Play FX
+        Instantiate(HealFX, transform.position, new Quaternion());
     }
 
     

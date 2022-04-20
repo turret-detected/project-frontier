@@ -4,25 +4,43 @@ using UnityEngine;
 
 public class GenTileObjects : MonoBehaviour
 {
-
+    [Header("Grid Size")]
     public int TerrainSizeX;
     public int TerrainSizeZ;
+
+    [Header("Generation")]
     public GameObject emptyTilePrefab;
     public int rockChance;
     public GameObject tinyRocks;
     public int grassChance;
     public GameObject smallGrass;
+    
+    
     private int roll;
     private Vector3 loc;
+    private List<GameObject> newObjects = new List<GameObject>();
 
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         GenObjects(emptyTilePrefab, 100);
         GenObjects(tinyRocks, rockChance);
         GenObjects(smallGrass, grassChance);
     }
+
+    /*
+    void OnValidate() {
+        if (Application.isPlaying) {
+            foreach (GameObject obj in newObjects) {
+                Destroy(obj);
+            }
+
+            GenObjects(emptyTilePrefab, 100);
+            GenObjects(tinyRocks, rockChance);
+            GenObjects(smallGrass, grassChance);
+        }
+    }
+    */
 
 
     public void GenObjects(GameObject obj, int chance) {
@@ -31,7 +49,7 @@ public class GenTileObjects : MonoBehaviour
                 roll = Random.Range(1, 99); // 1 to 100
                 if (roll <= chance) {
                     loc = new Vector3(x, 0, z);
-                    Instantiate(obj, loc, Quaternion.identity);
+                    newObjects.Add(Instantiate(obj, loc, Quaternion.identity));
                 }
             }
         }
