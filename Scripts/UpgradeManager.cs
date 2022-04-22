@@ -64,7 +64,7 @@ public class UpgradeManager : MonoBehaviour
     }
 
     public void SelectLootItem(GameObject lootPanel) {
-        SelectedItem = lootPanel.GetComponentInChildren<ItemWeapon>().gameObject;
+        SelectedItem = lootPanel.GetComponentInChildren<IItem>().GetGameObject();
         this.gameObject.transform.GetChild(0).gameObject.SetActive(false); // disable frame
         EquipLootPanel.SetActive(true);
         PopulateUnitList();        

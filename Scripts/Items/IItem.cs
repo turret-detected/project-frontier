@@ -12,4 +12,5 @@ public interface IItem
     string GetItemDesc();
     void OnEquip(Combatant c);
     void OnUnequip(Combatant c);
+    GameObject GetGameObject();
 }

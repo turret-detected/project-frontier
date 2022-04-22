@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -50,7 +51,7 @@ public class Combatant : MonoBehaviour
 
     // BAUBLE
     public string BaubleName;
-    public GameObject BaubleItem;
+    private GameObject BaubleItem;
     
     // CONSTS
     private float damageReductionMod;
@@ -105,19 +106,20 @@ public class Combatant : MonoBehaviour
              
         anim = GetComponent<Animator>();
 
-        WeaponItem = Resources.Load<GameObject>("Weapons/"+WeaponName);
-        if (WeaponItem != null) {
-            EquipItem(WeaponItem);
+        try {
+            EquipItem(Resources.Load<GameObject>("Weapons/"+WeaponName));
+        } catch (NullReferenceException) {
+            Debug.Log("Couldn't equip item named " + WeaponName);
         }
-
-        ArmorItem = Resources.Load<GameObject>("Armor/"+ArmorName);
-        if (ArmorItem != null) {
-            EquipItem(ArmorItem);
+        try {
+            EquipItem(Resources.Load<GameObject>("Armor/"+ArmorName));
+        } catch (NullReferenceException) {
+            Debug.Log("Couldn't equip item named " + ArmorName);
         }
-
-        BaubleItem = Resources.Load<GameObject>("Baubles/"+BaubleName);
-        if (BaubleItem != null) {
-            EquipItem(BaubleItem);
+        try {
+            EquipItem(Resources.Load<GameObject>("Baubles/"+BaubleName));
+        } catch (NullReferenceException) {
+            Debug.Log("Couldn't equip item named " + BaubleName);
         }
 
         movementScript = GetComponent<MovementAI>();
@@ -130,7 +132,12 @@ public class Combatant : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
         if (CurrentHealth > LastHealth) {
+            if (LastHealth == 0) {
+                anim.SetTrigger("Get Up");
+                gm.AddCombatant(this);
+            }
             OnHeal();
         }
         LastHealth = CurrentHealth;
@@ -191,7 +198,7 @@ public class Combatant : MonoBehaviour
     }
 
     public void OnAttacked(Combatant opponent, bool inCover) {
-        int roll = Random.Range(1, 19); // 1 to 20
+        int roll = UnityEngine.Random.Range(1, 19); // 1 to 20
         if (inCover) roll = roll - 5; //-5 penalty for target being in cover
         
         if (roll > 1) {
@@ -213,17 +220,24 @@ public class Combatant : MonoBehaviour
             // H > 0 test
             if (CurrentHealth < 0) {
                 CurrentHealth = 0;
-                Debug.Log(name + " has died!");
-                // Death todo
-                // If player unit, log death with save somehow
-                // All units:
-                // Ragdoll, drop weapon
-                // timed remove corpse
-                gm.RemoveCombatant(this);
-                Destroy(gameObject);
+                Debug.Log(name + " has been reduced to 0 health!");
+                OnDowned();
             }
         } else {
             Debug.Log("Missed!");
+        }
+    }
+
+    public void OnDowned() {
+        gm.RemoveCombatant(this);
+        if (UnitFaction == Faction.COMPUTER) {
+            // RAGDOLL & drop weapon
+            // delete after timer
+            Destroy(gameObject);
+        } else {
+            // TRIGGER DOWNED POSE
+            anim.SetTrigger("Downed");
+            ResetActions();
         }
     }
 
@@ -238,8 +252,14 @@ public class Combatant : MonoBehaviour
     }
 
     public void ResetActions() {
-        RemainingAttacks = MaxAttacks;
-        RemainingMoves = MaxMoves;
+        if (CurrentHealth != 0) {
+            RemainingAttacks = MaxAttacks;
+            RemainingMoves = MaxMoves;
+        } else {
+            RemainingAttacks = 0;
+            RemainingMoves = 0;
+        }
+        
     }
 
     public void EquipItem(GameObject itemObj) {

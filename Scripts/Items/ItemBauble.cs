@@ -41,4 +41,9 @@ public class ItemBauble : MonoBehaviour, IItem
     public virtual void OnUnequip(Combatant c) {
         Debug.Log("ITEM " + GetItemName() + " DOES NOT IMPLEMENT onUnequip(). THIS IS A BUG!");
     }
+
+    public GameObject GetGameObject() {
+        return gameObject;
+    }
 }
+

@@ -50,4 +50,9 @@ public class ItemWeapon : MonoBehaviour, IItem
         c.AttackType = DamageType.PHYSICAL;
     }
 
+    public GameObject GetGameObject() {
+        return gameObject;
+    }
+
+
 }
