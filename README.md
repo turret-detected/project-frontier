@@ -1,10 +1,16 @@
 # project-frontier
 Issues and code for Project Frontier
 
+Also hosts official releases.
+
+
+# About:
+Project Frontier (The Planar Frontier) is a turn based strategy game built in the Unity engine. I created it as my senior project in the spring of 2022.
 
 
 
-# Project Credits:
+
+# Credits:
 
 Sword icons created by Freepik - Flaticon | https://www.flaticon.com/free-icons/sword 
 
