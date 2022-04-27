@@ -4,7 +4,7 @@ Issues and code for Project Frontier
 
 
 
-#Project Credits:
+# Project Credits:
 
 Sword icons created by Freepik - Flaticon | https://www.flaticon.com/free-icons/sword 
 
