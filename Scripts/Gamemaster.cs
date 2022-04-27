@@ -31,7 +31,8 @@ public enum State {
     WAITING,
     SETUP,
     VICTORY,
-    DEFEAT
+    DEFEAT,
+    LOADED_SAVE
 }
 
 [System.Serializable]
@@ -73,6 +74,13 @@ public class Gamemaster : MonoBehaviour
         unitlist = new List<UnitData>();
         gameState = State.WAITING;
         ui = UIContainer.GetComponent<UIManager>();
+
+        if (IOManager.loadSaveOnNewLevel) {
+            endSetup();
+            IOManager.loadSaveOnNewLevel = false;
+            loadGame();
+            gameState = State.LOADED_SAVE;
+        }
     }
 
     // Update is called once per frame
@@ -188,6 +196,12 @@ public class Gamemaster : MonoBehaviour
 
             // update ui
             ui.populatePlacementList(namelist);
+        } else if (gameState == State.LOADED_SAVE) {
+            // ui updates
+            ui.destroyStartButton();
+            gameState = State.PLAYER_MOVE;
+            // TODO remove smoke grenades
+        
         } else {
             Debug.Log("Tried to move to setup but was in state " + gameState);
         }
@@ -305,7 +319,7 @@ public class Gamemaster : MonoBehaviour
         GameObject moveable = spawn.transform.GetChild(0).gameObject;
         moveable.GetComponent<CharacterController>().enabled = false;
         moveable.transform.position = data.Position; // char controller needs to off to do this for some reason? 
-        moveable.transform.rotation = data.Rotation;
+        //moveable.transform.rotation = data.Rotation;
         moveable.GetComponent<CharacterController>().enabled = true;
         Combatant c = moveable.GetComponent<Combatant>();
         c.SetUnitData(data);
@@ -337,6 +351,7 @@ public class Gamemaster : MonoBehaviour
             }
 
             IOManager.WritePlayerDataToFile(unitlist); // TODO don't ignore boolean
+            IOManager.WriteLastLevel(SceneManager.GetActiveScene().name);
         } else {
             Debug.Log("Can't save during AI turn!");
         }
@@ -377,5 +392,9 @@ public class Gamemaster : MonoBehaviour
 
     public void doneLooting() {
         TransitionToNextLevel = true;
+    }
+
+    public void logDamage(string log) {
+        ui.logDamage(log);
     }
 }

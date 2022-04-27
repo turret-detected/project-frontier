@@ -7,11 +7,14 @@ using UnityEngine.SceneManagement;
 public class UICharacterCreator : MonoBehaviour
 {
 
+    public Text betaVersionText;
+    public string nextMissionName;
     UICharCreatorPanel[] PanelList;
 
     // Start is called before the first frame update
     void Start()
     {
+        setVersionIndicator();
         PanelList = GetComponentsInChildren<UICharCreatorPanel>();
         Debug.Log("Found " + PanelList.Length + " ui panels!");
     }
@@ -34,9 +37,14 @@ public class UICharacterCreator : MonoBehaviour
 
         // Save and start game
         IOManager.WritePlayerDataToFile(unitlist);
-        SceneManager.LoadScene("FullSizeTest", LoadSceneMode.Single);
+        Debug.Log("Loading " + nextMissionName);
+        SceneManager.LoadScene(nextMissionName, LoadSceneMode.Single);
 
 
+    }
+
+    public void setVersionIndicator() {
+        betaVersionText.text = "TPF Beta v." + Application.version;
     }
 
 }

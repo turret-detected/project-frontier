@@ -50,12 +50,6 @@ public class UpgradeManager : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     public GameObject GenerateLootItem() { // Roll and remove then return item from loot list
         int roll = Random.Range(0, LootableItems.Count);
         GameObject temp = LootableItems[roll];

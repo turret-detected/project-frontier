@@ -37,7 +37,6 @@ public class ActionManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
         if (Input.GetButtonDown("Cheat Key")) {
             gm.endGame();
         }
@@ -46,6 +45,12 @@ public class ActionManager : MonoBehaviour
             if (Input.GetButtonDown("Cancel")) {
                 ui.toggleEscPanel(!showingEscPanel);
                 showingEscPanel = !showingEscPanel;
+            }
+        } else {
+            if (actionState == ActionState.ATTACK) {
+                selectedSelectable.GetComponent<Combatant>().ToggleRangeHighlight(true);
+            } else {
+                selectedSelectable.GetComponent<Combatant>().ToggleRangeHighlight(false);
             }
         }
 
@@ -109,9 +114,9 @@ public class ActionManager : MonoBehaviour
                 Combatant target;
                 hit.transform.gameObject.TryGetComponent<Combatant>(out target);
                 if (target != null) {
-
                     // ATTACK A UNIT
                     if (selected != null && actionState == ActionState.ATTACK) {
+                        
                         if (target.UnitFaction == Faction.COMPUTER) {
                             selected.Attack(target);
                         }

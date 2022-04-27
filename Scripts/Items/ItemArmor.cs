@@ -37,11 +37,8 @@ public class ItemArmor : MonoBehaviour, IItem
     }
 
     public void OnEquip(Combatant c) {
-        Debug.Log(c.Armor);
-        c.Armor = Armor + c.Armor;
+        c.Armor += Armor;
         c.Weave += Weave;
-        Debug.Log(c.Armor + " " + c.Weave);
-        Debug.Log(Armor + " " + Weave);
     }
 
     public void OnUnequip(Combatant c) {

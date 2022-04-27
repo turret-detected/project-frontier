@@ -5,6 +5,7 @@ using UnityEngine;
 public class AbilityWarriorSurge : MonoBehaviour, IAbility
 {
 
+    public string Name;
     public int AbilityCooldown;
     private int RemainingCooldown;
 
@@ -24,5 +25,9 @@ public class AbilityWarriorSurge : MonoBehaviour, IAbility
 
     public int GetRemainingCooldown() {
         return RemainingCooldown;
+    }
+
+        public string GetName() {
+        return Name;
     }
 }

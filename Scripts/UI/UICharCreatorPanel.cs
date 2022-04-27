@@ -69,9 +69,11 @@ public class UICharCreatorPanel : MonoBehaviour
     }
 
     public void GenerateRandomName() {
+
+        List<string> names = new List<string>{"Alex", "Sam", "Taylor", "Quinn", "Ash"};
+
         // https://answers.unity.com/questions/881597/text-object-cant-be-edited.html <3 random internet stranger
-        NameInputText.text = "Quinn";
-        // TODO make this actually generate a random name
+        NameInputText.text = names[UnityEngine.Random.Range(0, names.Count)];
         // Alex, Quinn, Sam, Taylor, Ash // unisex names since there's no gender indicator (only cleric is female tho..)
          
     }

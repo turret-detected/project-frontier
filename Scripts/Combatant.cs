@@ -59,12 +59,13 @@ public class Combatant : MonoBehaviour
     private GameObject activeSelectionHighlight;
     private int ignoreActionLayer = 1 << 20;
 
-    // ANIM
+    // ANIM & SOUND
     private Animator anim;
     private MovementAI movementScript;
     private bool attacking;
     private Combatant enemy;
-
+    private AudioSource sound;
+    private List<Transform> boneChildren = new List<Transform>();
 
 
     // LOAD AND SAVE
@@ -105,6 +106,7 @@ public class Combatant : MonoBehaviour
         damageReductionMod = gm.GetDamageReductionMod();
              
         anim = GetComponent<Animator>();
+        sound = GetComponent<AudioSource>();
 
         try {
             EquipItem(Resources.Load<GameObject>("Weapons/"+WeaponName));
@@ -126,6 +128,14 @@ public class Combatant : MonoBehaviour
 
         attacking = false;
         enemy = null;
+
+        // Disable bone colliders
+        GetAllChildren(transform.Find("Root").transform, ref boneChildren);
+        foreach (Transform t in boneChildren) {
+            t.GetComponent<Collider>().enabled = false;
+            t.GetComponent<Rigidbody>().isKinematic = true;
+        }
+
 
     }
 
@@ -153,17 +163,24 @@ public class Combatant : MonoBehaviour
         }
     }
 
-    IEnumerator AttackAnim() {
+    // code adapted from: sergiobd @ https://forum.unity.com/threads/loop-through-all-children.53473/
+    public void GetAllChildren(Transform parent, ref List <Transform> transforms)
+    {
+        foreach (Transform t in parent) {
+            transforms.Add(t);
+            GetAllChildren(t, ref transforms);
+        }
+    }
+
+
+
+    IEnumerator AttackAnim(Combatant me, Combatant enemy) {
         attacking = true;
         yield return new WaitForSeconds(1);
         attacking = false;
+        WeaponModel.GetComponent<ItemWeapon>().WeaponSwing(this, enemy);
         anim.SetTrigger("Attack");
-
-        /*
-        anim.SetBool("Attacking", true);
         yield return new WaitForSeconds(1);
-        anim.SetBool("Attacking", false);
-        */
     }
 
     public bool Move(int x, int z) {
@@ -186,8 +203,12 @@ public class Combatant : MonoBehaviour
             if (Vector3.Distance(transform.position, opponent.transform.position) <= (AttackRange + 0.55f)) {
                 /// attack!
                 RemainingAttacks--;
-                enemy = opponent;               
-                StartCoroutine(AttackAnim());
+                if (RemainingAttacks == 0) { // end turn if last attack
+                    RemainingMoves = 0;
+                }
+                enemy = opponent;
+                StartCoroutine(AttackAnim(this, opponent));
+                
                 opponent.OnAttacked(this, IsTargetInCover(opponent.transform.position));
             } else {
                 Debug.Log("Out of range!");
@@ -218,22 +239,54 @@ public class Combatant : MonoBehaviour
             Debug.Log("Hit!");
             Debug.Log("I have " + CurrentHealth.ToString());
             // H > 0 test
-            if (CurrentHealth < 0) {
+            if (CurrentHealth <= 0) {
                 CurrentHealth = 0;
                 Debug.Log(name + " has been reduced to 0 health!");
                 OnDowned();
             }
+            gm.logDamage(opponent.UnitName + " dealt " + dmg + " damage to " + UnitName + "!\n");
+
+
         } else {
             Debug.Log("Missed!");
+            gm.logDamage(opponent.UnitName + " missed!\n");
+
         }
+    }
+
+    public void TakeDamage(int damage, DamageType damageType) {
+        if (damageType == DamageType.PHYSICAL) {
+            damage = (int) (damage * Mathf.Pow(damageReductionMod, Armor));
+        } else if (damageType == DamageType.MAGICAL) {
+            damage = (int) (damage * Mathf.Pow(damageReductionMod, Weave));
+        } else {
+            damage = (int) damage * 1; // True damage
+        }
+
+        // H > 0 test
+        if (CurrentHealth <= 0) {
+            CurrentHealth = 0;
+            Debug.Log(name + " has been reduced to 0 health!");
+            OnDowned();
+        }
+        gm.logDamage(UnitName + " took " + damage + " damage!\n");
     }
 
     public void OnDowned() {
         gm.RemoveCombatant(this);
         if (UnitFaction == Faction.COMPUTER) {
+            WeaponModel.transform.parent = null;
+            GetComponent<Animator>().enabled = false;
+            GetComponent<CharacterController>().enabled = false;
+            foreach (Transform t in boneChildren) {
+                t.GetComponent<Collider>().enabled = true;
+                t.GetComponent<Rigidbody>().isKinematic = false;
+            }
+
+
             // RAGDOLL & drop weapon
             // delete after timer
-            Destroy(gameObject);
+            // Destroy(gameObject);
         } else {
             // TRIGGER DOWNED POSE
             anim.SetTrigger("Downed");
@@ -246,9 +299,16 @@ public class Combatant : MonoBehaviour
         if (b) {
             activeSelectionHighlight = Instantiate(selectionHighlightPrefab, transform.position, Quaternion.identity);
             activeSelectionHighlight.transform.SetParent(transform);
+            var particle_shape = activeSelectionHighlight.GetComponentInChildren<ParticleSystem>().shape;
+            particle_shape.radius = AttackRange;
         } else {
             Destroy(activeSelectionHighlight);
         }
+    }
+
+    public void ToggleRangeHighlight(bool b) {
+        var particleEmission = activeSelectionHighlight.GetComponentInChildren<ParticleSystem>().emission;
+        particleEmission.enabled = b; 
     }
 
     public void ResetActions() {
@@ -352,6 +412,10 @@ public class Combatant : MonoBehaviour
         // Play FX
         Instantiate(HealFX, transform.position, new Quaternion());
     }
+
+    public void PlaySound(AudioClip clip) {
+        sound.PlayOneShot(clip);
+    } 
 
     
 }

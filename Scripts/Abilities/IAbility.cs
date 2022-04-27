@@ -8,4 +8,5 @@ public interface IAbility
     void performAbility(Combatant caster, Combatant target);
     void IncrementCooldown();
     int GetRemainingCooldown();
+    string GetName();
 }

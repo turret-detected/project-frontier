@@ -16,10 +16,15 @@ public class UIManager : MonoBehaviour
     public GameObject escMenuPanel;
     public GameObject placementMenuPanel;
     public GameObject lootMenuPanel;
+    public GameObject damageLogPanel;
+    public Text betaVersionText;
+    
+    private string lastDamage = "";
 
     // Start is called before the first frame update
     void Start()
     {
+        setVersionIndicator();
         selectedUnit = null;
         //gm = gameMaster.GetComponent<Gamemaster>();
     }
@@ -139,6 +144,19 @@ public class UIManager : MonoBehaviour
         Dropdown dropdown = placementMenuPanel.GetComponentInChildren<Dropdown>();
         return dropdown.options.Count == 0;
     }
+
+    public void logDamage(string log) {
+        
+        damageLogPanel.GetComponentInChildren<Text>().text = lastDamage + "\n" + log;
+                
+        lastDamage = log;
+
+    }
+
+    public void setVersionIndicator() {
+        betaVersionText.text = "TPF Beta v." + Application.version;
+    }
+    
 
     /// https://www.youtube.com/watch?v=8yzpjkoE0YA
     /// Good video

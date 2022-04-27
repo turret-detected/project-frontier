@@ -2,13 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AbilityClericHeal : MonoBehaviour, IAbility
+public class AbilityMageMeteor : MonoBehaviour, IAbility
 {
+
     public string Name;
-    public AudioClip healSound;
+    public AudioClip castSound;
+    public GameObject fireballPrefab;
     private AudioSource charAudio;
     public int AbilityCooldown;
     private int RemainingCooldown;
+    public int DamageValue;
 
     void Start() {
         RemainingCooldown = 0;
@@ -16,7 +19,7 @@ public class AbilityClericHeal : MonoBehaviour, IAbility
     }
 
     public bool isValidTarget(Combatant caster, Combatant target) {
-        return (target.UnitFaction == Faction.PLAYER && RemainingCooldown < 1); // ANY ALLY
+        return (target.UnitFaction == Faction.COMPUTER && RemainingCooldown < 1); // ANY ENEMY
     }
 
     public void performAbility(Combatant caster, Combatant target) {
@@ -25,12 +28,12 @@ public class AbilityClericHeal : MonoBehaviour, IAbility
         caster.GetAnimator().SetTrigger("Power 2");
         
         // audio
-        charAudio.clip = healSound;
+        charAudio.clip = castSound;
         charAudio.PlayDelayed(1);
 
-        // heal
-        target.CurrentHealth += target.MaxHealth/2;
-        target.CurrentHealth = Mathf.Min(target.CurrentHealth, target.MaxHealth); // can't overheal
+        // create fireball
+        Instantiate(fireballPrefab, target.transform.position, new Quaternion());
+        target.TakeDamage(DamageValue, DamageType.MAGICAL);
         
         // cd
         RemainingCooldown = AbilityCooldown;
@@ -47,4 +50,5 @@ public class AbilityClericHeal : MonoBehaviour, IAbility
     public string GetName() {
         return Name;
     }
+    
 }

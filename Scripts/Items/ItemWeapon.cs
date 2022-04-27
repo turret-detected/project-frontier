@@ -12,6 +12,9 @@ public class ItemWeapon : MonoBehaviour, IItem
     public Vector3 offset;
     public Vector3 rotation;
     public string parent_bone;
+    public AudioClip onCast;
+    public AudioClip onHit;
+    private Combatant target;
     
 
     public string GetParentBone() {
@@ -53,6 +56,27 @@ public class ItemWeapon : MonoBehaviour, IItem
     public GameObject GetGameObject() {
         return gameObject;
     }
+
+    public void Start() {
+
+    }
+
+    public void WeaponSwing(Combatant attacker, Combatant target) {
+        this.target = target; // set target so hit sound plays only once
+        attacker.PlaySound(onCast);
+    }
+
+    void OnTriggerEnter(Collider other) {
+        Combatant c;
+        if (other.gameObject.TryGetComponent<Combatant>(out c)) {
+            if (target == c) {
+                target.PlaySound(onHit);
+                target = null; // accidental idle collision won't trigger sound
+            }
+        } 
+    }
+
+
 
 
 }
