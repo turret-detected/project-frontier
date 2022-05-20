@@ -263,6 +263,8 @@ public class Combatant : MonoBehaviour
             damage = (int) damage * 1; // True damage
         }
 
+        CurrentHealth = CurrentHealth - damage;
+
         // H > 0 test
         if (CurrentHealth <= 0) {
             CurrentHealth = 0;

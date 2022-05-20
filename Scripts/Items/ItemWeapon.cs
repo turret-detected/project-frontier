@@ -14,7 +14,12 @@ public class ItemWeapon : MonoBehaviour, IItem
     public string parent_bone;
     public AudioClip onCast;
     public AudioClip onHit;
+    public const int HitStopFrames = 50;
     private Combatant target;
+    private bool countFrames = false;
+    private int frameCount = 0;
+    private Animator animator;
+    private float animSpeed = 0;
     
 
     public string GetParentBone() {
@@ -45,6 +50,7 @@ public class ItemWeapon : MonoBehaviour, IItem
         c.AttackDamage = Damage;
         c.AttackRange = Range;
         c.AttackType = DamageType;
+        animator = c.gameObject.GetComponentInChildren<Animator>();
     }
 
     public void OnUnequip(Combatant c) {
@@ -72,8 +78,25 @@ public class ItemWeapon : MonoBehaviour, IItem
             if (target == c) {
                 target.PlaySound(onHit);
                 target = null; // accidental idle collision won't trigger sound
+                /*
+                animSpeed = animator.speed; // why doesn't this work?
+                animator.speed = 0;
+                countFrames = true;
+                */
+
             }
         } 
+    }
+
+    void FixedUpdate() {
+        if (countFrames) {
+            frameCount++;
+            if (frameCount >= HitStopFrames) {
+                animator.speed = animSpeed;
+                countFrames = false;
+                frameCount = 0;
+            }
+        }        
     }
 
 
